@@ -1,34 +1,19 @@
 package org.firstinspires.ftc.teamcode6996_demi;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 
-/*
- * This file contains an example of an iterative (Non-Linear) "OpMode".
- * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
- * The names of OpModes appear on the menu of the FTC Driver Station.
- * When a selection is made from the menu, the corresponding OpMode
- * class is instantiated on the Robot Controller and executed.
- *
- * This particular OpMode just executes a basic Tank Drive Teleop for a two wheeled robot
- * It includes all the skeletal structure that all iterative OpModes contain.
- *
- * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
- */
+import org.firstinspires.ftc.teamcode6996_demi.mechanisms.MecanumDrive;
 
-@Autonomous(name="Auto_DECODE")
-public class Auto_DECODE extends OpMode
-{
-    // Declare OpMode members.
+@Autonomous(name = "Auto_DECODE")
+public class Auto_DECODE extends LinearOpMode {
+
     private ElapsedTime runtime = new ElapsedTime();
 
+    private MecanumDrive robot;
     private static final int kNOT_SET = -1;
-
     private static final int kSTART_LOCATION_1 = 0;
     private static final int kSTART_LOCATION_2 = 1;
     private static final int kSTART_LOCATION_3 = 2;
@@ -38,101 +23,145 @@ public class Auto_DECODE extends OpMode
     private static final int kRED = 1;
     public int alliance_color = kNOT_SET;
 
-    public Gamepad saved_gamepad1 = new Gamepad();
-    public String alliance = "blue";
-    public String audience = "none";
-    public String backside = "none";
-    public String position = "none";
-
-    /*
-     * Code to run ONCE when the driver hits INIT
-     */
     @Override
-    public void init() {
+    public void runOpMode() {
+        // Hardware map setup
+        robot = new MecanumDrive();
+        robot.init(hardwareMap);
+
         telemetry.addData("Status", "Initialized");
-
-    }
-
-    /*
-     * Code to run REPEATEDLY after the driver hits INIT, but before they hit START
-     */
-    @Override
-    public void init_loop() {
-        if (gamepad1.x || gamepad2.x) {
-            alliance_color = kBLUE;
-        }
-        if (gamepad1.b || gamepad2.b) {
-            alliance_color = kRED;
-        }
-        if (gamepad1.dpad_left || gamepad2.dpad_left) {
-            current_start_location = kSTART_LOCATION_1;//
-        }
-        if (gamepad1.dpad_up || gamepad2.dpad_up) {
-            current_start_location = kSTART_LOCATION_2;//
-        }
-        if (gamepad1.dpad_right || gamepad2.dpad_right) {
-            current_start_location = kSTART_LOCATION_3;//
-        }
-        if (gamepad1.dpad_down || gamepad2.dpad_down) {
-            current_start_location = kNOT_SET;
-        }
-        telemetryChoice();
+        telemetry.addData("Version", "4");
         telemetry.update();
-    }
 
-    /*
-     * Code to run ONCE when the driver hits START
-     */
-    @Override
-    public void start() {
+        // Wait for the game to start
+        waitForStart();
         runtime.reset();
+
+        // Run the test auto routine
+        runTestAuto();
     }
 
-    /*
-     * Code to run REPEATEDLY after the driver hits START but before they hit STOP
-     */
-    @Override
-    public void loop() {
-        // Setup a variable for each drive wheel to save power level for telemetry
+    public void encoderDrive(double speed,
+                             double leftFrontInches, double rightFrontInches,
+                             double leftBackInches, double rightBackInches,
+                             double timeoutS) {
+
+
+        // Constants for encoder counts for AndyMark NeveRest 40 (40:1)
+        final double COUNTS_PER_MOTOR_REV = 1120; // AM-2964 with 40:1 gearbox
+        final double WHEEL_DIAMETER_INCHES = 4.0;  // Wheel diameter in inches
+        final double COUNTS_PER_INCH = COUNTS_PER_MOTOR_REV / (WHEEL_DIAMETER_INCHES * Math.PI);
+
+        // Calculate target positions
+        int [] target = robot.getAllPositions();
+        target[0] += (int)(leftFrontInches * COUNTS_PER_INCH);
+        target[1] += (int)(rightFrontInches * COUNTS_PER_INCH);
+        target[2] += (int)(leftBackInches * COUNTS_PER_INCH);
+        target[3] += (int)(rightBackInches * COUNTS_PER_INCH);
+
+        // Set target positions
+        robot.setTargetPosition(target);
+
+        // Set to RUN_TO_POSITION mode
+        robot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        // Set power
+        robot.setRawPower(Math.abs(speed));
+
+        // Start movement and wait for completion or timeout
+        runtime.reset();
+        while (opModeIsActive() &&
+                (runtime.seconds() < timeoutS) &&
+                (robot.isAllBusy())) {
+
+            target = robot.getAllPositions();
+            telemetry.addData("Path", "Driving");
+            telemetry.addData("LF", target[0]);
+            telemetry.addData("RF", target[1]);
+            telemetry.addData("LB", target[2]);
+            telemetry.addData("RB", target[3]);
+            telemetry.update();
+        }
+
+        // Stop all motion
+        robot.stop();
+
+        // Set motors back to RUN_USING_ENCODER mode
+        robot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
-    /*
-     * Code to run ONCE after the driver hits STOP
-     */
-    @Override
-    public void stop() {
+    public void runTestAuto() {
+        telemetry.addLine("Running Test Auto Sequence...");
+        telemetry.update();
+
+        //robot.setPower(-.3, .3, -.3, .3);
+       MoveForward(0.5, 12, 5);
+        MoveRight(0.5, 12, 5);
+        MoveBackward(0.5, 12, 5);
+        MoveLeft(0.5, 12, 5);
+
+
+
+        /*
+        Turnleft(.3, 10, 2); //turns a bit to the left (haven't tested yet)
+        //shoot and score
+        Turnright(.3, 10, 2);
+        MoveBackward(.5, 55, 5);
+        MoveLeft(.5, 40, 5);
+        //get artifacts from human player
+        MoveRight(.5, 45, 5);
+        MoveForward(.5, 60, 5);
+        //shoot and score
+        MoveBackward(.5, 40, 5);
+        MoveLeft(.5, 15, .5); //end in park spot
+
+        */
+        sleep(5000);
     }
 
-    void telemetryChoice()
-    {
-        if (alliance_color == kBLUE)
-        {
+    public void MoveForward(double speed, double inches, double timeoutS) {
+        encoderDrive(speed, inches, inches, inches, inches, timeoutS);
+    }
+
+    public void MoveBackward(double speed, double inches, double timeoutS) {
+        encoderDrive(speed, -inches, -inches, -inches, -inches, timeoutS);
+    }
+
+    public void MoveRight(double speed, double inches, double timeoutS) {
+        encoderDrive(speed, inches, -inches, -inches, inches, timeoutS);
+    }
+
+    public void MoveLeft(double speed, double inches, double timeoutS) {
+        encoderDrive(speed, -inches, inches, inches, -inches, timeoutS);
+    }
+
+    public void Turnleft(double speed, double inches, double timeoutS) {
+        encoderDrive(speed, -inches, inches, -inches, inches, timeoutS);
+    }
+
+    public void Turnright(double speed, double inches, double timeoutS) {
+        encoderDrive(speed, inches, -inches, inches, -inches, timeoutS);
+    }
+
+    public void telemetryChoice() {
+        if (alliance_color == kBLUE) {
             telemetry.addData("Current Alliance", "Blue");
-        }
-        else if (alliance_color == kRED)
-        {
+        } else if (alliance_color == kRED) {
             telemetry.addData("Current Alliance", "Red");
-        }
-        else
-        {
+        } else {
             telemetry.addData("Current Alliance", "None");
         }
-        if (current_start_location == kSTART_LOCATION_1 )
-        {
-            telemetry.addData("Start Position   ", "Position 1");
+
+        if (current_start_location == kSTART_LOCATION_1) {
+            telemetry.addData("Start Position", "Position 1");
+        } else if (current_start_location == kSTART_LOCATION_2) {
+            telemetry.addData("Start Position", "Position 2");
+        } else if (current_start_location == kSTART_LOCATION_3) {
+            telemetry.addData("Start Position", "Position 3");
+        } else {
+            telemetry.addData("Start Position", "None");
         }
-        else if (current_start_location == kSTART_LOCATION_2)
-        {
-            telemetry.addData("Start Position   ", "Position 2");
-        }
-        else if (current_start_location == kSTART_LOCATION_3)
-        {
-            telemetry.addData("Start Position   ", "Position 3");
-        }
-        else
-        {
-            telemetry.addData("Start Position   ", "None");
-        }
+
+        telemetry.update();
     }
 }
-
