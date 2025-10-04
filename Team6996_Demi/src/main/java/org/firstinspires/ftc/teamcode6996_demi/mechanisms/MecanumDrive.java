@@ -1,18 +1,28 @@
 package org.firstinspires.ftc.teamcode6996_demi.mechanisms;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class MecanumDrive {
     private DcMotor left_front_drive  = null;
     private DcMotor left_rear_drive   = null;
     private DcMotor right_front_drive = null;
     private DcMotor right_rear_drive  = null;
-
+    private CRServo intake  = null;
+    private ElapsedTime driveTimer = new ElapsedTime();
     public IMU imu;
+    final double TRACK_WIDTH_MM = 404;
+    final double WHEEL_DIAMETER_MM = 96;
+    final double ENCODER_TICKS_PER_REV = 537.7;
+    final double TICKS_PER_MM = (ENCODER_TICKS_PER_REV / (WHEEL_DIAMETER_MM * Math.PI));
 
     private RevHubOrientationOnRobot orientation = null;
 
@@ -34,6 +44,14 @@ public class MecanumDrive {
 
     private boolean showTelemetry = false;
     private boolean isInitialized = false;
+
+    private enum TurnState
+    {
+        IDLE,
+        TURNING,
+        COMPLETED;
+    }
+    private TurnState rotating = TurnState.IDLE;
 
     public MecanumDrive()
     {
@@ -66,6 +84,8 @@ public class MecanumDrive {
         left_rear_drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         right_front_drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         right_rear_drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        intake = hardwareMap.get(CRServo.class, "servo0");
 
         imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(orientation);
@@ -209,6 +229,137 @@ public class MecanumDrive {
         setPower(speeds[0], speeds[1], speeds[2], speeds[3]);
     }
 
+    /**
+     * @param speed From 0-1
+     * @param distance In specified unit
+     * @param distanceUnit the unit of measurement for distance
+     * @param holdSeconds the number of seconds to wait at position before returning true.
+     * @return "true" if the motors are within tolerance of the target position for more than
+     * holdSeconds. "false" otherwise.
+     */
+    public boolean drive(double speed, double distance, DistanceUnit distanceUnit, double holdSeconds) {
+        final double TOLERANCE_MM = 10;
+        /*
+         * In this function we use a DistanceUnits. This is a class that the FTC SDK implements
+         * which allows us to accept different input units depending on the user's preference.
+         * To use these, put both a double and a DistanceUnit as parameters in a function and then
+         * call distanceUnit.toMm(distance). This will return the number of mm that are equivalent
+         * to whatever distance in the unit specified. We are working in mm for this, so that's the
+         * unit we request from distanceUnit. But if we want to use inches in our function, we could
+         * use distanceUnit.toInches() instead!
+         */
+        double TICKS_PER_MM = getTicksPerMM();
+        double targetPosition = (distanceUnit.toMm(distance) * TICKS_PER_MM);
+
+        int [] pos = {(int) targetPosition, (int) targetPosition, (int) targetPosition, (int) targetPosition};
+        setTargetPosition(pos);
+        setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        setRawPower(speed);
+
+        /*
+         * Here we check if we are within tolerance of our target position or not. We calculate the
+         * absolute error (distance from our setpoint regardless of if it is positive or negative)
+         * and compare that to our tolerance. If we have not reached our target yet, then we reset
+         * the driveTimer. Only after we reach the target can the timer count higher than our
+         * holdSeconds variable.
+         */
+        if(Math.abs(targetPosition - left_front_drive.getCurrentPosition()) > (TOLERANCE_MM * TICKS_PER_MM)){
+            driveTimer.reset();
+        }
+
+        return (driveTimer.seconds() > holdSeconds);
+    }
+
+    public boolean rotateBy(double degrees)
+    {
+        boolean finished = false;
+        //positive left
+        //All angles are in the range of -180 degrees to 180 degrees.
+        double heading_deg = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+        double normalized = heading_deg % 360;
+        double diff = (degrees - heading_deg + 540) % 360 - 180;
+
+        double speed=.2; //positive speed, turn left
+        //negative speed, turn right
+        if (degrees < 0)
+            speed *= -1;
+
+        switch (rotating)
+        {
+            case IDLE:
+            {
+                imu.resetYaw();
+                rotating = TurnState.TURNING;
+                break;
+            }
+            case TURNING:
+            {
+                setRawPower(-speed, speed, -speed, speed);
+                if (Math.abs(diff) < 1) {
+                    rotating = TurnState.COMPLETED;
+                }
+                break;
+            }
+            case COMPLETED:
+            {
+                finished = true;
+                stop();
+                break;
+            }
+        }
+        return finished;
+    }
+
+    public void intake(double power) {
+        intake.setPower(power);
+    }
+
+    boolean rotate(double speed, double angle, AngleUnit angleUnit, double holdSeconds){
+        final double TOLERANCE_MM = 10;
+
+        /*
+         * Here we establish the number of mm that our drive wheels need to cover to create the
+         * requested angle. We use radians here because it makes the math much easier.
+         * Our robot will have rotated one radian when the wheels of the robot have driven
+         * 1/2 of the track width of our robot in a circle. This is also the radius of the circle
+         * that the robot tracks when it is rotating. So, to find the number of mm that our wheels
+         * need to travel, we just need to multiply the requested angle in radians by the radius
+         * of our turning circle.
+         */
+        double TRACK_WIDTH_MM = 100;
+        double targetMm = angleUnit.toRadians(angle)*(TRACK_WIDTH_MM/2);
+
+        /*
+         * We need to set the left motor to the inverse of the target so that we rotate instead
+         * of driving straight.
+         */
+        double leftTargetPosition = -(targetMm*TICKS_PER_MM);
+        double rightTargetPosition = targetMm*TICKS_PER_MM;
+
+
+        left_front_drive.setTargetPosition((int) leftTargetPosition);
+        right_front_drive.setTargetPosition((int) rightTargetPosition);
+        left_rear_drive.setTargetPosition((int) leftTargetPosition);
+        right_rear_drive.setTargetPosition((int) rightTargetPosition);
+
+        left_front_drive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        right_front_drive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        left_rear_drive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        right_rear_drive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        left_front_drive.setPower(speed);
+        right_front_drive.setPower(speed);
+        left_rear_drive.setPower(speed);
+        right_rear_drive.setPower(speed);
+
+        if((Math.abs(leftTargetPosition - left_front_drive.getCurrentPosition())) > (TOLERANCE_MM * TICKS_PER_MM)){
+            driveTimer.reset();
+        }
+
+        return (driveTimer.seconds() > holdSeconds);
+    }
+
+
     public void stop()
     {
         setRawPower(0,0,0,0);
@@ -236,6 +387,15 @@ public class MecanumDrive {
                 right_front_drive.getCurrentPosition(),
                 left_rear_drive.getCurrentPosition(),
                 right_rear_drive.getCurrentPosition()};
+        return pos;
+    }
+
+    public int[] getAllTargetPositions()
+    {
+        int [] pos = {left_front_drive.getTargetPosition(),
+                right_front_drive.getTargetPosition(),
+                left_rear_drive.getTargetPosition(),
+                right_rear_drive.getTargetPosition()};
         return pos;
     }
 

@@ -6,12 +6,23 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode6996_demi.mechanisms.MecanumDrive;
 
 @Autonomous(name = "Auto_DECODE")
 public class Auto_DECODE extends OpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
+
+    private ElapsedTime shotTimer = new ElapsedTime();
+    private ElapsedTime feederTimer = new ElapsedTime();
+
+    final double LAUNCHER_TARGET_VELOCITY = 1125;
+    final double LAUNCHER_MIN_VELOCITY = 1075;
+    final double TIME_BETWEEN_SHOTS = 2;
+    final double FEED_TIME = 0.20;
+    int shotsToFire = 3; //The number of shots to fire in this auto.
+    double robotRotationAngle = 45;
 
     private MecanumDrive robot;
 
@@ -45,15 +56,22 @@ public class Auto_DECODE extends OpMode {
         private int id;
     }
 
-    private static final int kNOT_SET = -1;
-    private static final int kSTART_LOCATION_1 = 0;
-    private static final int kSTART_LOCATION_2 = 1;
-    private static final int kSTART_LOCATION_3 = 2;
-    public int current_start_location = kNOT_SET;
+    private enum LaunchState {
+        IDLE,
+        PREPARE,
+        LAUNCH,
+    }
+    private LaunchState launchState;
 
-    private static final int kBLUE = 0;
-    private static final int kRED = 1;
-    public int alliance_color = kNOT_SET;
+    private enum AutonomousState {
+        LAUNCH,
+        WAIT_FOR_LAUNCH,
+        DRIVING_AWAY_FROM_GOAL,
+        ROTATING,
+        DRIVING_OFF_LINE,
+        COMPLETE;
+    }
+    private AutonomousState autonomousState;
 
     public Gamepad saved_gamepad1 = new Gamepad();
     public String audience = "none";
@@ -83,27 +101,22 @@ public class Auto_DECODE extends OpMode {
     @Override
     public void init_loop() {
         if (gamepad1.x || gamepad2.x) {
-            alliance_color = kBLUE;
             alliance = Alliance.BLUE;
         }
         if (gamepad1.b || gamepad2.b) {
-            alliance_color = kRED;
             alliance = Alliance.RED;
         }
-        if (gamepad1.dpad_left || gamepad2.dpad_left) {
-            current_start_location = kSTART_LOCATION_1;//
+        if (gamepad1.dpadLeftWasPressed() || gamepad2.dpadLeftWasPressed()) {
             start_location = Location.START_LOCATION_1;
         }
-        if (gamepad1.dpad_up || gamepad2.dpad_up) {
-            current_start_location = kSTART_LOCATION_2;//
+        if (gamepad1.dpadUpWasPressed() || gamepad2.dpadUpWasPressed()) {
             start_location = Location.START_LOCATION_2;
         }
-        if (gamepad1.dpad_right || gamepad2.dpad_right) {
-            current_start_location = kSTART_LOCATION_3;//
+        if (gamepad1.dpadRightWasPressed() || gamepad2.dpadRightWasPressed()) {
             start_location = Location.START_LOCATION_3;
         }
-        if (gamepad1.dpad_down || gamepad2.dpad_down) {
-            current_start_location = kNOT_SET;
+        if (gamepad1.dpadDownWasPressed() || gamepad2.dpadDownWasPressed() ) {
+
             start_location = Location.NOT_SET;
         }
         telemetryChoice();
@@ -122,8 +135,70 @@ public class Auto_DECODE extends OpMode {
     @Override
     public void loop() {
         // Setup a variable for each drive wheel to save power level for telemetry
+        double DRIVE_SPEED = .5;
+
+        switch (autonomousState){
+            case LAUNCH:
+                launch(true);
+                autonomousState = AutonomousState.WAIT_FOR_LAUNCH;
+                break;
+
+            case WAIT_FOR_LAUNCH:
+                if(launch(false)) {
+                    shotsToFire -= 1;
+                    if(shotsToFire > 0) {
+                        autonomousState = AutonomousState.LAUNCH;
+                    } else {
+                        robot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                       // launcher.setVelocity(0);
+                        autonomousState = AutonomousState.DRIVING_AWAY_FROM_GOAL;
+                    }
+                }
+                break;
+
+            case DRIVING_AWAY_FROM_GOAL:
+
+                if(robot.drive(DRIVE_SPEED, -4, DistanceUnit.INCH, 1)){
+                    robot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    autonomousState = AutonomousState.ROTATING;
+                }
+                break;
+
+            case ROTATING:
+                if(alliance == Alliance.RED){
+                    robotRotationAngle = 45;
+                } else if (alliance == Alliance.BLUE){
+                    robotRotationAngle = -45;
+                }
+
+                /*
+                if(rotate(ROTATE_SPEED, robotRotationAngle, AngleUnit.DEGREES,1)){
+                    robot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    autonomousState = AutonomousState.DRIVING_OFF_LINE;
+                }
+
+                 */
+                break;
+
+            case DRIVING_OFF_LINE:
+                if(robot.drive(DRIVE_SPEED, -26, DistanceUnit.INCH, 1)){
+                    autonomousState = AutonomousState.COMPLETE;
+                }
+                break;
+        }
+
+        telemetry.addData("AutoState", autonomousState);
+        telemetry.addData("LauncherState", launchState);
+        outputPositions("Current", robot.getAllPositions());
+        outputPositions("Target", robot.getAllTargetPositions());
+        telemetry.update();
     }
 
+    public void outputPositions(String label, int [] position)
+    {
+        telemetry.addData(label, "LF (%d), RF (%d), LB (%d), RB (%d)",
+                position[0], position[1], position[2],position[3]);
+    }
     /*
      * Code to run ONCE after the driver hits STOP
      */
@@ -206,27 +281,44 @@ public class Auto_DECODE extends OpMode {
         encoderDrive(speed, inches, -inches, inches, -inches, timeoutS);
     }
 */
+
+    boolean launch(boolean shotRequested){
+        switch (launchState) {
+            case IDLE:
+                if (shotRequested) {
+                    launchState = LaunchState.PREPARE;
+                    shotTimer.reset();
+                }
+                break;
+            case PREPARE:
+                /*
+                launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
+                if (launcher.getVelocity() > LAUNCHER_MIN_VELOCITY){
+                    launchState = LaunchState.LAUNCH;
+                    //leftFeeder.setPower(1);
+                    //rightFeeder.setPower(1);
+                    feederTimer.reset();
+                }
+
+                 */
+                break;
+            case LAUNCH:
+                if (feederTimer.seconds() > FEED_TIME) {
+                   // leftFeeder.setPower(0);
+                    //rightFeeder.setPower(0);
+
+                    if(shotTimer.seconds() > TIME_BETWEEN_SHOTS){
+                        launchState = LaunchState.IDLE;
+                        return true;
+                    }
+                }
+        }
+        return false;
+    }
+
     public void telemetryChoice() {
-        if (alliance_color == kBLUE) {
-            telemetry.addData("Current Alliance", "Blue");
-        } else if (alliance_color == kRED) {
-            telemetry.addData("Current Alliance", "Red");
-        } else {
-            telemetry.addData("Current Alliance", "None");
-        }
         telemetry.addData("Current Alliance", alliance);
-
-        if (current_start_location == kSTART_LOCATION_1) {
-            telemetry.addData("Start Position", "Position 1");
-        } else if (current_start_location == kSTART_LOCATION_2) {
-            telemetry.addData("Start Position", "Position 2");
-        } else if (current_start_location == kSTART_LOCATION_3) {
-            telemetry.addData("Start Position", "Position 3");
-        } else {
-            telemetry.addData("Start Position", "None");
-        }
         telemetry.addData("Start Position", start_location);
-
         telemetry.update();
     }
 }

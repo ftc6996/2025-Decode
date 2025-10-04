@@ -73,6 +73,12 @@ public class DriverController extends OpMode{
     private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
     private AprilTagDetection desiredTag = null;     // Used to hold the data for a detected AprilTag
     private boolean targetFound = false;    // Set to true when an AprilTag target is detected
+    private enum IntakeStatus {
+        IDLE,
+        RUNNING,
+        OPPOSITE;
+    }
+    private IntakeStatus intake_status = IntakeStatus.IDLE;
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -90,7 +96,7 @@ public class DriverController extends OpMode{
      */
     @Override
     public void init_loop() {
-        telemetry.addData("Version", "2");
+        telemetry.addData("Version", "4");
         telemetry.update();
     }
 
@@ -181,7 +187,24 @@ public class DriverController extends OpMode{
         {
            twist = -.25;
         }
-/*
+
+        if (gamepad1.bWasPressed())
+        {
+            robot.intake(1);
+            intake_status = IntakeStatus.RUNNING;
+        }
+        else if ( gamepad1.xWasPressed())
+        {
+            robot.intake(-1);
+            intake_status = IntakeStatus.OPPOSITE;
+        }
+        else if (gamepad1.aWasPressed())
+        {
+            robot.intake(0);
+            intake_status = IntakeStatus.IDLE;
+        }
+
+            /*
         if (strafe_left)
         {
             strafe = -current_speed;
@@ -249,7 +272,7 @@ public class DriverController extends OpMode{
         telemetry.addData("RF", target[1]);
         telemetry.addData("LB", target[2]);
         telemetry.addData("RB", target[3]);
-        telemetry.update();
+        telemetry.addData("Intake", intake_status);
         telemetry.update();
         
         //save all of the gamepad 
