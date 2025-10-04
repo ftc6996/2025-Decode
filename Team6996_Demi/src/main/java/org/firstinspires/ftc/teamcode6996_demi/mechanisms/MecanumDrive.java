@@ -24,13 +24,17 @@ public class MecanumDrive {
     static final double MIN_MOVE_SPEED = 0.2;
     static final double SPEED_INCREMENT = 0.1;
     private double speedAdjustment = MAX_MOVE_SPEED;
-
+/*
     private final double COUNTS_PER_MOTOR_REV = 280; // AM-2964 with 40:1 gearbox
     private final double WHEEL_DIAMETER_INCHES = 4.0;  // Wheel diameter in inches
     private final double COUNTS_PER_INCH = COUNTS_PER_MOTOR_REV / (WHEEL_DIAMETER_INCHES * Math.PI);
+*/
+    private double countsPerMotorRev = 1120; //Demi AM-2964 with 40:1 gearbox
+    private double wheelDiameter = 102;
 
     private boolean showTelemetry = false;
     private boolean isInitialized = false;
+
     public MecanumDrive()
     {
         //default to this standard orientation
@@ -67,6 +71,26 @@ public class MecanumDrive {
         IMU.Parameters parameters = new IMU.Parameters(orientation);
         imu.initialize(parameters);
         isInitialized = true;
+    }
+
+    public void setWheelDiameter(double diameter)
+    {
+        wheelDiameter = diameter;
+    }
+
+    public void setMotorTicksPerRev(double ticks)
+    {
+        countsPerMotorRev = ticks;
+    }
+
+    public double getTicksPerMM()
+    {
+        return countsPerMotorRev / (wheelDiameter * Math.PI);
+    }
+
+    public double getTicksPerIN()
+    {
+        return getTicksPerMM() / 25.4;
     }
 
     public void setMode(DcMotor.RunMode mode)
