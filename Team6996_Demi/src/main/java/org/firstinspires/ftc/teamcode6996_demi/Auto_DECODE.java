@@ -1,18 +1,50 @@
 package org.firstinspires.ftc.teamcode6996_demi;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode6996_demi.mechanisms.MecanumDrive;
 
 @Autonomous(name = "Auto_DECODE")
-public class Auto_DECODE extends LinearOpMode {
+public class Auto_DECODE extends OpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
 
     private MecanumDrive robot;
+
+    private enum Alliance {
+        NOT_SET,
+        BLUE,
+        RED;
+    }
+    private Alliance alliance = Alliance.NOT_SET;
+
+    private enum Location {
+        NOT_SET,
+        START_LOCATION_1,
+        START_LOCATION_2,
+        START_LOCATION_3;
+    }
+    private Location start_location = Location.NOT_SET;
+
+    public enum AprilTags {
+        ALL(-1), BLUE_GOAL(20), RED_GOAL(24),
+        OBELISK_GPP(21), OBELISK_PGP(22), OBELISK_PPG(23);
+
+        private AprilTags(final int id)
+        {
+            this.id = id;
+        }
+        public int getID()
+        {
+            return id;
+        }
+        private int id;
+    }
+
     private static final int kNOT_SET = -1;
     private static final int kSTART_LOCATION_1 = 0;
     private static final int kSTART_LOCATION_2 = 1;
@@ -23,24 +55,84 @@ public class Auto_DECODE extends LinearOpMode {
     private static final int kRED = 1;
     public int alliance_color = kNOT_SET;
 
+    public Gamepad saved_gamepad1 = new Gamepad();
+    public String audience = "none";
+    public String backside = "none";
+    public String position = "none";
+
+    /*
+     * Code to run ONCE when the driver hits INIT
+     */
     @Override
-    public void runOpMode() {
+    public void init() {
         // Hardware map setup
         robot = new MecanumDrive();
         robot.init(hardwareMap);
+        // Constants for wheel diameter am-4763 ?
+        robot.setWheelDiameter(100);
+        // Constants for encoder counts for AM-2964 AndyMark NeveRest 40 (40:1)
+        robot.setMotorTicksPerRev(1120);
 
         telemetry.addData("Status", "Initialized");
-        telemetry.addData("Version", "4");
         telemetry.update();
-
-        // Wait for the game to start
-        waitForStart();
-        runtime.reset();
-
-        // Run the test auto routine
-        runTestAuto();
     }
 
+    /*
+     * Code to run REPEATEDLY after the driver hits INIT, but before they hit START
+     */
+    @Override
+    public void init_loop() {
+        if (gamepad1.x || gamepad2.x) {
+            alliance_color = kBLUE;
+            alliance = Alliance.BLUE;
+        }
+        if (gamepad1.b || gamepad2.b) {
+            alliance_color = kRED;
+            alliance = Alliance.RED;
+        }
+        if (gamepad1.dpad_left || gamepad2.dpad_left) {
+            current_start_location = kSTART_LOCATION_1;//
+            start_location = Location.START_LOCATION_1;
+        }
+        if (gamepad1.dpad_up || gamepad2.dpad_up) {
+            current_start_location = kSTART_LOCATION_2;//
+            start_location = Location.START_LOCATION_2;
+        }
+        if (gamepad1.dpad_right || gamepad2.dpad_right) {
+            current_start_location = kSTART_LOCATION_3;//
+            start_location = Location.START_LOCATION_3;
+        }
+        if (gamepad1.dpad_down || gamepad2.dpad_down) {
+            current_start_location = kNOT_SET;
+            start_location = Location.NOT_SET;
+        }
+        telemetryChoice();
+    }
+    /*
+     * Code to run ONCE when the driver hits START
+     */
+    @Override
+    public void start() {
+        runtime.reset();
+    }
+
+    /*
+     * Code to run REPEATEDLY after the driver hits START but before they hit STOP
+     */
+    @Override
+    public void loop() {
+        // Setup a variable for each drive wheel to save power level for telemetry
+    }
+
+    /*
+     * Code to run ONCE after the driver hits STOP
+     */
+    @Override
+    public void stop() {
+        robot.stop();
+    }
+
+    /*
     public void encoderDrive(double speed,
                              double leftFrontInches, double rightFrontInches,
                              double leftBackInches, double rightBackInches,
@@ -90,35 +182,6 @@ public class Auto_DECODE extends LinearOpMode {
         robot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
-    public void runTestAuto() {
-        telemetry.addLine("Running Test Auto Sequence...");
-        telemetry.update();
-
-        //robot.setPower(-.3, .3, -.3, .3);
-       MoveForward(0.5, 12, 5);
-        MoveRight(0.5, 12, 5);
-        MoveBackward(0.5, 12, 5);
-        MoveLeft(0.5, 12, 5);
-
-
-
-        /*
-        Turnleft(.3, 10, 2); //turns a bit to the left (haven't tested yet)
-        //shoot and score
-        Turnright(.3, 10, 2);
-        MoveBackward(.5, 55, 5);
-        MoveLeft(.5, 40, 5);
-        //get artifacts from human player
-        MoveRight(.5, 45, 5);
-        MoveForward(.5, 60, 5);
-        //shoot and score
-        MoveBackward(.5, 40, 5);
-        MoveLeft(.5, 15, .5); //end in park spot
-
-        */
-        sleep(5000);
-    }
-
     public void MoveForward(double speed, double inches, double timeoutS) {
         encoderDrive(speed, inches, inches, inches, inches, timeoutS);
     }
@@ -142,7 +205,7 @@ public class Auto_DECODE extends LinearOpMode {
     public void Turnright(double speed, double inches, double timeoutS) {
         encoderDrive(speed, inches, -inches, inches, -inches, timeoutS);
     }
-
+*/
     public void telemetryChoice() {
         if (alliance_color == kBLUE) {
             telemetry.addData("Current Alliance", "Blue");
@@ -151,6 +214,7 @@ public class Auto_DECODE extends LinearOpMode {
         } else {
             telemetry.addData("Current Alliance", "None");
         }
+        telemetry.addData("Current Alliance", alliance);
 
         if (current_start_location == kSTART_LOCATION_1) {
             telemetry.addData("Start Position", "Position 1");
@@ -161,6 +225,7 @@ public class Auto_DECODE extends LinearOpMode {
         } else {
             telemetry.addData("Start Position", "None");
         }
+        telemetry.addData("Start Position", start_location);
 
         telemetry.update();
     }
