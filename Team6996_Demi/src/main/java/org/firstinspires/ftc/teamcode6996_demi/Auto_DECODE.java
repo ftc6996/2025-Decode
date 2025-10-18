@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -25,10 +26,6 @@ import java.util.concurrent.TimeUnit;
 public class Auto_DECODE extends OpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
-
-
-
-
 
     int shotsToFire = 3; //The number of shots to fire in this auto.
     double robotRotationAngle = 45;
@@ -98,6 +95,8 @@ public class Auto_DECODE extends OpMode {
 
         initAprilTag();
 
+
+
         //launcher =  new Launcher();
         //launcher.init(hardwareMap);
 
@@ -136,6 +135,7 @@ public class Auto_DECODE extends OpMode {
         }
         telemetryChoice();
     }
+
     /*
      * Code to run ONCE when the driver hits START
      */
@@ -154,10 +154,14 @@ public class Auto_DECODE extends OpMode {
         double DRIVE_SPEED = .5;
         robot.PinPointUpdate();
 
+        //this basically only happens once to find the obelisk for the game
         if (!targetFound)
         {
             lookingForObTag();
         }
+
+        lookingForGoalTag(alliance);
+
         switch (autonomousState){
             case LAUNCH:
                 //launcher.launch(true);
@@ -438,33 +442,64 @@ public class Auto_DECODE extends OpMode {
             }
         }
     }
-    /*private void lookingForGoalTag(Alliance alliance) {
+    private void lookingForGoalTag(Alliance alliancePicked) {
+
+        boolean driveToRequested = false;
+        double heading = robot.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        double heading_deg = robot.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+        final double MAX_AUTO_SPEED = 0.5;   //  Clip the approach speed to this max value (adjust for your robot)
+        final double MAX_AUTO_STRAFE= 0.5;   //  Clip the strafing speed to this max value (adjust for your robot)
+        final double MAX_AUTO_TURN  = 0.3;   //  Clip the turn speed to this max value (adjust for your robot)
+        final double DESIRED_DISTANCE = 12.0; //  this is how close the camera should get to the target (inches)
+        double drive  = 0;
+        double strafe = 0;
+        double twist  = 0;
+        final double SPEED_GAIN  =  0.02  ;   //  Forward Speed Control "Gain". e.g. Ramp up to 50% power at a 25 inch error.   (0.50 / 25.0)
+        final double STRAFE_GAIN =  0.015 ;   //  Strafe Speed Control "Gain".  e.g. Ramp up to 37% power at a 25 degree Yaw error.   (0.375 / 25.0)
+        final double TURN_GAIN   =  0.01  ;   //  Turn Control "Gain".  e.g. Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
+
         targetFound = false;
         desiredTag = null;
-
+        int lookingForID = -1;
+        if (alliancePicked == Alliance.BLUE)
+        {
+            lookingForID = AprilTags.BLUE_GOAL.getID();
+        }
+        else if (alliancePicked == Alliance.RED)
+        {
+            lookingForID = AprilTags.RED_GOAL.getID();
+        }
+        else
+        {
+            return;
+        }
         // Step through the list of detected tags and look for a matching tag
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
         for (AprilTagDetection detection : currentDetections) {
             // Look to see if we have size info on this tag.
             if (detection.metadata != null) {
                 //  Check to see if we want to track towards this tag.
-                if (detection.id == AprilTags.Alliance.alliance.getID())
+                if (detection.id == lookingForID)
                 {
                     // Yes, we want to use this tag.
                     targetFound = true;
                     desiredTag = detection;
-                    if (detection.id == AprilTags.OBELISK_GPP.getID())
-                    {
-                        targetFoundTag = AprilTags.OBELISK_GPP;
+                    if (driveToRequested && targetFound) {
+
+                        // Determine heading, range and Yaw (tag image rotation) error so we can use them to control the robot automatically.
+                        double  rangeError      = (desiredTag.ftcPose.range - DESIRED_DISTANCE);
+                        double  headingError    = desiredTag.ftcPose.bearing;
+                        double  yawError        = desiredTag.ftcPose.yaw;
+
+                        // Use the speed and turn "gains" to calculate how we want the robot to move.
+                        drive  = Range.clip(rangeError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
+                        twist   = Range.clip(headingError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN) ;
+                        strafe = Range.clip(-yawError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
+
+                        telemetry.addData("Auto","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, twist);
                     }
-                    if (detection.id == AprilTags.OBELISK_PGP.getID())
-                    {
-                        targetFoundTag = AprilTags.OBELISK_PGP;
-                    }
-                    if (detection.id == AprilTags.OBELISK_PPG.getID())
-                    {
-                        targetFoundTag = AprilTags.OBELISK_PPG;
-                    }
+                    robot.move(drive, strafe, twist);
+
                     break;  // don't look any further.
                 } else {
                     // This tag is in the library, but we do not want to track it right now.
@@ -475,5 +510,5 @@ public class Auto_DECODE extends OpMode {
                 telemetry.addData("Unknown", "Tag ID %d is not in TagLibrary", detection.id);
             }
         }
-    }*/
+    }
 }
