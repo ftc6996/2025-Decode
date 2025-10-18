@@ -10,8 +10,9 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDir
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode6996_demi.mechanisms.Launcher;
+//import org.firstinspires.ftc.teamcode6996_demi.mechanisms.Launcher;
 import org.firstinspires.ftc.teamcode6996_demi.mechanisms.MecanumDrive;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -33,7 +34,7 @@ public class Auto_DECODE extends OpMode {
     double robotRotationAngle = 45;
 
     private MecanumDrive robot;
-    private Launcher launcher;
+    //private Launcher launcher;
 
     private enum Alliance {
         NOT_SET,
@@ -151,10 +152,11 @@ public class Auto_DECODE extends OpMode {
     public void loop() {
         // Setup a variable for each drive wheel to save power level for telemetry
         double DRIVE_SPEED = .5;
+        robot.PinPointUpdate();
 
         if (!targetFound)
         {
-            lookingForTag();
+            lookingForObTag();
         }
         switch (autonomousState){
             case LAUNCH:
@@ -220,6 +222,9 @@ public class Auto_DECODE extends OpMode {
        //telemetry.addData("LauncherState", launcher.getLaunchState());
         outputPositions("Current", robot.getAllPositions());
         outputPositions("Target", robot.getAllTargetPositions());
+        telemetry.addData("positionX", Math.round(robot.getPinpointPosition().getX(DistanceUnit.MM)));
+        telemetry.addData("positionY", Math.round(robot.getPinpointPosition().getY(DistanceUnit.MM)));
+        telemetry.addData("heading",Math.round(robot.getPinpointPosition().getHeading(AngleUnit.DEGREES)));
         telemetry.update();
     }
 
@@ -393,7 +398,7 @@ public class Auto_DECODE extends OpMode {
         mySleep(20);
     }
 
-    private void lookingForTag() {
+    private void lookingForObTag() {
         targetFound = false;
         desiredTag = null;
 
@@ -433,4 +438,42 @@ public class Auto_DECODE extends OpMode {
             }
         }
     }
+    /*private void lookingForGoalTag(Alliance alliance) {
+        targetFound = false;
+        desiredTag = null;
+
+        // Step through the list of detected tags and look for a matching tag
+        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+        for (AprilTagDetection detection : currentDetections) {
+            // Look to see if we have size info on this tag.
+            if (detection.metadata != null) {
+                //  Check to see if we want to track towards this tag.
+                if (detection.id == AprilTags.Alliance.alliance.getID())
+                {
+                    // Yes, we want to use this tag.
+                    targetFound = true;
+                    desiredTag = detection;
+                    if (detection.id == AprilTags.OBELISK_GPP.getID())
+                    {
+                        targetFoundTag = AprilTags.OBELISK_GPP;
+                    }
+                    if (detection.id == AprilTags.OBELISK_PGP.getID())
+                    {
+                        targetFoundTag = AprilTags.OBELISK_PGP;
+                    }
+                    if (detection.id == AprilTags.OBELISK_PPG.getID())
+                    {
+                        targetFoundTag = AprilTags.OBELISK_PPG;
+                    }
+                    break;  // don't look any further.
+                } else {
+                    // This tag is in the library, but we do not want to track it right now.
+                    telemetry.addData("Skipping", "Tag ID %d is not desired", detection.id);
+                }
+            } else {
+                // This tag is NOT in the library, so we don't have enough information to track to it.
+                telemetry.addData("Unknown", "Tag ID %d is not in TagLibrary", detection.id);
+            }
+        }
+    }*/
 }
