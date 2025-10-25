@@ -12,6 +12,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode6996_demi.mechanisms.MecanumDrive;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -117,6 +118,7 @@ public class DriverController extends OpMode{
         //  drive (front-and-back),
         //  strafe (left-and-right), and 
         //  twist (rotating the whole chassis).
+        robot.PinPointUpdate();
         double drive  = -gamepad1.left_stick_y;
         double strafe = gamepad1.left_stick_x;
         double twist  = gamepad1.right_stick_x;
@@ -273,6 +275,9 @@ public class DriverController extends OpMode{
         telemetry.addData("LB", target[2]);
         telemetry.addData("RB", target[3]);
         telemetry.addData("Intake", intake_status);
+        telemetry.addData("positionX", Math.round(robot.getPinpointPosition().getX(DistanceUnit.MM)));
+        telemetry.addData("positionY", Math.round(robot.getPinpointPosition().getY(DistanceUnit.MM)));
+        telemetry.addData("heading",Math.round(robot.getPinpointPosition().getHeading(AngleUnit.DEGREES)));
         telemetry.update();
         
         //save all of the gamepad 

@@ -10,6 +10,8 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.teamcode6996_demi.GoBildaPinpointDriver;
 
 public class MecanumDrive {
     private DcMotor left_front_drive  = null;
@@ -18,6 +20,7 @@ public class MecanumDrive {
     private DcMotor right_rear_drive  = null;
     private CRServo intake  = null;
     private ElapsedTime driveTimer = new ElapsedTime();
+    private GoBildaPinpointDriver PinPoint;
     public IMU imu;
     final double TRACK_WIDTH_MM = 404;
     final double WHEEL_DIAMETER_MM = 96;
@@ -91,6 +94,18 @@ public class MecanumDrive {
         IMU.Parameters parameters = new IMU.Parameters(orientation);
         imu.initialize(parameters);
         isInitialized = true;
+
+        PinPoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+
+        PinPoint.setPosition(new Pose2D(DistanceUnit.MM,0,0,AngleUnit.DEGREES,0));
+
+        PinPoint.setOffsets(90,0,DistanceUnit.MM);
+
+        PinPoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+
+        PinPoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+
+
     }
 
     public void setWheelDiameter(double diameter)
@@ -404,5 +419,12 @@ public class MecanumDrive {
         right_front_drive.setTargetPosition(pos[1]);
         left_rear_drive.setTargetPosition(pos[2]);
         right_rear_drive.setTargetPosition(pos[3]);
+    }
+
+    public Pose2D getPinpointPosition(){
+        return PinPoint.getPosition();
+    }
+    public void PinPointUpdate(){
+        PinPoint.update();
     }
 }
