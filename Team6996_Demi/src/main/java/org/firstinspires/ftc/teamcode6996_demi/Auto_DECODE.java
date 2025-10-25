@@ -13,7 +13,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.Exposur
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-//import org.firstinspires.ftc.teamcode6996_demi.mechanisms.Launcher;
+import org.firstinspires.ftc.teamcode6996_demi.mechanisms.Launcher;
 import org.firstinspires.ftc.teamcode6996_demi.mechanisms.MecanumDrive;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -31,7 +31,7 @@ public class Auto_DECODE extends OpMode {
     double robotRotationAngle = 45;
 
     private MecanumDrive robot;
-    //private Launcher launcher;
+    private Launcher launcher;
 
     private enum Alliance {
         NOT_SET,
@@ -97,8 +97,8 @@ public class Auto_DECODE extends OpMode {
 
 
 
-        //launcher =  new Launcher();
-        //launcher.init(hardwareMap);
+        launcher =  new Launcher();
+        launcher.init(hardwareMap);
 
         // Constants for wheel diameter am-4763 ?
         robot.setWheelDiameter(100);
@@ -151,25 +151,46 @@ public class Auto_DECODE extends OpMode {
     @Override
     public void loop() {
         // Setup a variable for each drive wheel to save power level for telemetry
+
+        int desiredYDistance = -610;
+        int desiredXDistance = 0;
         double DRIVE_SPEED = .5;
+        double PinPointx = robot.getPinpointPosition().getX(DistanceUnit.MM);
+        double PinPointy = robot.getPinpointPosition().getY(DistanceUnit.MM);
+        int slopingPower = 0;
         robot.PinPointUpdate();
+        if(Math.abs(PinPointy-desiredYDistance)>10){
+            desiredYDistance = (int)(PinPointy-desiredYDistance);
+        }
+        else if(Math.abs(PinPointy-desiredYDistance)<10){
+            desiredYDistance = 0;
+        }
+        if(Math.abs(PinPointx-desiredXDistance)>10){
+            desiredXDistance = (int)(PinPointx-desiredXDistance);
+        }
+        else if(Math.abs(PinPointx-desiredXDistance)<10){
+            desiredXDistance = 0;
+        }
+        robot.move(desiredYDistance, desiredXDistance, 0);
+        telemetry.addData("Y distance goal in MM", desiredYDistance);
+        telemetry.addData("X distance goal in MM", desiredXDistance);
+        //telemetry.addData("distance in MM", robot.PinPoint.getPosition().getX(DistanceUnit.MM));
 
         //this basically only happens once to find the obelisk for the game
-        if (!targetFound)
+        /*if (!targetFound)
         {
             lookingForObTag();
-        }
+        }*/
 
-        lookingForGoalTag(alliance);
+        //lookingForGoalTag(alliance);
 
-        switch (autonomousState){
+/*        switch (autonomousState){
             case LAUNCH:
-                //launcher.launch(true);
+                launcher.launch(true);
                 autonomousState = AutonomousState.WAIT_FOR_LAUNCH;
                 break;
 
             case WAIT_FOR_LAUNCH:
-                /*
                 if(launcher.launch(false)) {
                     shotsToFire -= 1;
                     if(shotsToFire > 0) {
@@ -180,17 +201,14 @@ public class Auto_DECODE extends OpMode {
                         autonomousState = AutonomousState.DRIVING_AWAY_FROM_GOAL;
                     }
                 }
-                */
                 break;
 
             case DRIVING_AWAY_FROM_GOAL:
-/*
                 if(robot.drive(DRIVE_SPEED, -4, DistanceUnit.INCH, 1)){
                     robot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     autonomousState = AutonomousState.ROTATING;
                 }
 
- */
                 break;
 
             case ROTATING:
@@ -200,30 +218,25 @@ public class Auto_DECODE extends OpMode {
                     robotRotationAngle = -45;
                 }
 
-                /*
-                if(rotate(ROTATE_SPEED, robotRotationAngle, AngleUnit.DEGREES,1)){
-                    robot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    autonomousState = AutonomousState.DRIVING_OFF_LINE;
-                }
-
-                 */
+                //if(robot.rotate(ROTATE_SPEED, robotRotationAngle, AngleUnit.DEGREES,1)){
+                //    robot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                //    autonomousState = AutonomousState.DRIVING_OFF_LINE;
+                //}
                 break;
 
             case DRIVING_OFF_LINE:
-                /*
                 if(robot.drive(DRIVE_SPEED, -26, DistanceUnit.INCH, 1)){
                     autonomousState = AutonomousState.COMPLETE;
                 }
 
-                 */
                 break;
             default:
                 break;
-        }
+        }*/
 
         telemetry.addData("AutoState", autonomousState);
         telemetry.addData("Obelisk", targetFoundTag);// targetFound ? desiredTag.id : "NONE");
-       //telemetry.addData("LauncherState", launcher.getLaunchState());
+        telemetry.addData("LauncherState", launcher.getLaunchState());
         outputPositions("Current", robot.getAllPositions());
         outputPositions("Target", robot.getAllTargetPositions());
         telemetry.addData("positionX", Math.round(robot.getPinpointPosition().getX(DistanceUnit.MM)));
@@ -244,8 +257,7 @@ public class Auto_DECODE extends OpMode {
     public void stop() {
         robot.stop();
     }
-
-    /*
+    //////////////////////////////////////////////////////////////////////////////////////////////////
     public void encoderDrive(double speed,
                              double leftFrontInches, double rightFrontInches,
                              double leftBackInches, double rightBackInches,
@@ -275,6 +287,7 @@ public class Auto_DECODE extends OpMode {
 
         // Start movement and wait for completion or timeout
         runtime.reset();
+        /*
         while (opModeIsActive() &&
                 (runtime.seconds() < timeoutS) &&
                 (robot.isAllBusy())) {
@@ -287,7 +300,7 @@ public class Auto_DECODE extends OpMode {
             telemetry.addData("RB", target[3]);
             telemetry.update();
         }
-
+*/
         // Stop all motion
         robot.stop();
 
@@ -318,7 +331,7 @@ public class Auto_DECODE extends OpMode {
     public void Turnright(double speed, double inches, double timeoutS) {
         encoderDrive(speed, inches, -inches, inches, -inches, timeoutS);
     }
-*/
+///////////////////////////////////////////////////////////////////////////////////////////
 
     public void telemetryChoice() {
         telemetry.addData("Version", "3");
