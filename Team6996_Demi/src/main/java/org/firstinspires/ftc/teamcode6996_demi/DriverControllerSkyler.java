@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode6996_demi;
 //gamepad1.back    == robot vs field centric
 //gamepad1.options == reset heading
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -16,13 +15,12 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainCon
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode6996_demi.mechanisms.MecanumDrive;
+import org.firstinspires.ftc.teamcode6996_demi.mechanisms.TwoWheelDrive;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
-import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -30,12 +28,13 @@ import com.qualcomm.robotcore.util.Range;
 
 
 @TeleOp(name="DriverController", group="TeleOp")
-public class DriverController extends OpMode{
+public class DriverControllerSkyler extends OpMode{
 
-    private MecanumDrive robot;
+//    private MecanumDrive robot;
+
+    private TwoWheelDrive robot;
 
     private  EndgameController endgameControl;
-
     // Adjust these numbers to suit your robot.
     final double DESIRED_DISTANCE = 12.0; //  this is how close the camera should get to the target (inches)
 
@@ -99,14 +98,15 @@ public class DriverController extends OpMode{
     @Override
     public void init() {
         // Define and Initialize Motors
-        robot = new MecanumDrive();
+//        robot = new MecanumDrive();
+        robot = new TwoWheelDrive();
         robot.init(hardwareMap);
 
         endgameControl = new EndgameController();
         endgameControl.init(hardwareMap, telemetry);
         initAprilTag();
     }
-    
+
     /*
      * Code to run REPEATEDLY after the driver hits INIT, but before they hit START
      */
@@ -133,7 +133,7 @@ public class DriverController extends OpMode{
         //  drive (front-and-back),
         //  strafe (left-and-right), and 
         //  twist (rotating the whole chassis).
-        robot.PinPointUpdate();
+//        robot.PinPointUpdate();
         double drive  = -gamepad1.left_stick_y;
         double strafe = gamepad1.left_stick_x;
         double twist  = gamepad1.right_stick_x;
@@ -209,20 +209,18 @@ public class DriverController extends OpMode{
 
         if (gamepad1.bWasPressed())
         {
-            robot.intake(1);
+//            robot.intake(1);
             intake_status = IntakeStatus.RUNNING;
         }
         else if ( gamepad1.xWasPressed())
         {
-            robot.intake(-1);
+//            robot.intake(-1);
             intake_status = IntakeStatus.OPPOSITE;
         }
-        else if (gamepad1.aWasPressed())
+      //  else if (gamepad1.aWasPressed())
         {
-            robot.intake(0);
-            intake_status = IntakeStatus.IDLE;
+      //      intake_status = IntakeStatus.IDLE;
         }
-
         if (gamepad1.yWasPressed()){
             turret_Motor.setPower(.8);
         }
@@ -234,8 +232,6 @@ public class DriverController extends OpMode{
 
         if (rightTriggerPressed && !lastRightTriggerPressed) {
             endgameStart = true;
-        } else {
-            endgameStart = false;
         }
 
         lastRightTriggerPressed = rightTriggerPressed;
@@ -323,9 +319,9 @@ public class DriverController extends OpMode{
         telemetry.addData("LB", target[2]);
         telemetry.addData("RB", target[3]);
         telemetry.addData("Intake", intake_status);
-        telemetry.addData("positionX", Math.round(robot.getPinpointPosition().getX(DistanceUnit.MM)));
-        telemetry.addData("positionY", Math.round(robot.getPinpointPosition().getY(DistanceUnit.MM)));
-        telemetry.addData("heading",Math.round(robot.getPinpointPosition().getHeading(AngleUnit.DEGREES)));
+//        telemetry.addData("positionX", Math.round(robot.getPinpointPosition().getX(DistanceUnit.MM)));
+//        telemetry.addData("positionY", Math.round(robot.getPinpointPosition().getY(DistanceUnit.MM)));
+//        telemetry.addData("heading",Math.round(robot.getPinpointPosition().getHeading(AngleUnit.DEGREES)));
         telemetry.update();
         
         //save all of the gamepad 
@@ -343,7 +339,7 @@ public class DriverController extends OpMode{
     
     public void stop_all_move()
     {
-        robot.setRawPower(0,0,0,0);
+        robot.setRawPower(0,0);
     }
 
     /**
