@@ -45,7 +45,7 @@ public class TeleOpMiniBot extends OpMode {
             setAlliance(kALLIANCE_RED);
         }
 
-        telemetry.addData("Version", "7");
+        telemetry.addData("Version", "9");
         telemetry.addData("Alliance", allianceString);
         telemetry.update();
     }
@@ -61,7 +61,7 @@ public class TeleOpMiniBot extends OpMode {
         if (enable_moving) {
             robot.move(drive, strafe, twist);
 
-            robot.intake(intake_speed);
+            //robot.intake(intake_speed);
         }
 
         //robot.processTelemetry(telemetry);
@@ -71,6 +71,7 @@ public class TeleOpMiniBot extends OpMode {
         telemetry.addData("Drive: ", drive);
         telemetry.addData("strafe: ", strafe);
         telemetry.addData("twist: ", twist);
+        telemetry.addData("hood pos", robot.getLauncherHoodPosition());
         telemetry.update();
     }
 
@@ -125,20 +126,29 @@ public class TeleOpMiniBot extends OpMode {
         //temporary handling for intake
         if (gamepad1.right_trigger > 0)
         {
-            intake_speed = 1;// gamepad1.right_trigger;
+            robot.setHoodPosition(1);
+            //robot.setTurretPower(0.3);
+            //intake_speed = 1;// gamepad1.right_trigger;
         }
         else if (gamepad1.left_trigger > 0)
         {
-            intake_speed = -1;//gamepad1.left_trigger;
+            robot.setHoodPosition(0.3);
+            //robot.setTurretPower(-0.3);
+            //intake_speed = -1;//gamepad1.left_trigger;
         }
-        else if (gamepad1.xWasPressed())
+        else
         {
+            robot.setTurretPower(0);
             intake_speed = 0;
         }
     }
 
     public void processTracking()
     {
+        robot.getAprilTag();
+        telemetry.addData("tag id", robot.getTagID());
+        telemetry.addData("tag location x", robot.getTagLocationX());
+        telemetry.addData("tag location y", robot.getTagLocationY());
         //process limelight
         //move turrent, hood
         //are we in range?

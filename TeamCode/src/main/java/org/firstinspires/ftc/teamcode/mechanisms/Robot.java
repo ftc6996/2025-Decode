@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.mechanisms;
 
 import static org.firstinspires.ftc.teamcode.Constants.*;
 
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -9,13 +10,18 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.Constants;
+import org.firstinspires.ftc.teamcode6996_demi.mechanisms.LimeLight;
 
 public class Robot {
 
     private MecanumDrive mecanumDrive;
     private DcMotor intake_motor;
     private Blinky blinky;
-    //private Launcher launcher;
+    private Launcher launcher;
+    private LimeLight limeLight;
+    private Limelight3A vision;
+
     private int alliance = kNOT_SET;
 
     public Robot()
@@ -28,13 +34,17 @@ public class Robot {
                 RevHubOrientationOnRobot.UsbFacingDirection.RIGHT);
         mecanumDrive.init(hardwareMap);
 
-        intake_motor = hardwareMap.get(DcMotor.class, "intake_motor");
-        intake_motor.setDirection(DcMotor.Direction.FORWARD);
-        intake_motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        intake_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        //intake_motor = hardwareMap.get(DcMotor.class, "intake_motor");
+        //intake_motor.setDirection(DcMotor.Direction.FORWARD);
+        //intake_motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        //intake_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        blinky = new Blinky();
-        blinky.init(hardwareMap);
+        vision = hardwareMap.get(Limelight3A.class, "limelight");
+        limeLight = new LimeLight(vision);
+        //blinky = new Blinky();
+        //blinky.init(hardwareMap);
+        launcher = new Launcher();
+        launcher.init(hardwareMap);
     }
 
     public void update()
@@ -63,18 +73,37 @@ public class Robot {
     {
         if (alliance == kALLIANCE_RED)
         {
-            blinky.setRedAlliance();
+            //blinky.setRedAlliance();
+            limeLight.setPipeline(Game.kPIPELINE_ALLIANCE_RED);
         }
         else if (alliance == kALLIANCE_BLUE)
         {
-            blinky.setBlueAlliance();
+            //blinky.setBlueAlliance();
+            limeLight.setPipeline(Game.kPIPELINE_ALLIANCE_BLUE);
         }
         else
         {
-            blinky.setUnknownAlliance();
+            //blinky.setUnknownAlliance();
         }
     }
 
+    public void setTurretPower(double power)
+    {
+        launcher.setTurretPower(power);
+    }
+
+    public void setHoodPosition(double pos)
+    {
+        launcher.setHoodPosition(pos);
+    }
+    public double getLauncherHoodPosition()
+    {
+        return launcher.getPositon();
+    }
+    public void getAprilTag()
+    {
+        limeLight.getAprilTags();
+    }
     public void processTelemetry(Telemetry telemetry)
     {
         /*
@@ -95,5 +124,20 @@ public class Robot {
         telemetry.addData("heading",Math.round(robot.getPinpointPosition().getHeading(AngleUnit.DEGREES)));
         telemetry.update();
          */
+    }
+
+    public int getTagID()
+    {
+        return limeLight.getTagID();
+    }
+
+    public double getTagLocationX()
+    {
+        return limeLight.getTagLocationX();
+    }
+
+    public double getTagLocationY()
+    {
+        return limeLight.getTagLocationY();
     }
 }

@@ -27,7 +27,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
 
-@TeleOp(name="DriverController", group="TeleOp")
+@TeleOp(name="DriverControllerggr", group="TeleOp")
 public class DriverControllerSkyler extends OpMode{
 
 //    private MecanumDrive robot;
@@ -96,11 +96,11 @@ public class DriverControllerSkyler extends OpMode{
      * Code to run ONCE when the driver hits INIT
      */
     @Override
-    public void init() {
+    public void init() {robot.init(hardwareMap);
         // Define and Initialize Motors
 //        robot = new MecanumDrive();
         robot = new TwoWheelDrive();
-        robot.init(hardwareMap);
+
 
         endgameControl = new EndgameController();
         endgameControl.init(hardwareMap, telemetry);

@@ -17,6 +17,7 @@ public class VisionTest extends OpMode {
     public void init() {
         vision = hardwareMap.get(Limelight3A.class, "Limelight3A");
         limeLight = new LimeLight(vision);
+        limeLight.setPipeline(0);
     }
 
     @Override
@@ -34,6 +35,7 @@ public class VisionTest extends OpMode {
     }
     @Override
     public void loop() {
+        limeLight.getAprilTags();
 
     }
 }
