@@ -22,9 +22,14 @@ public interface Constants {
         static final double kTAG_TOP_GOAL_HEIGHT_IN = 38.75;
         static final double kTAG_CENTER_OFFSET_FROM_TOP_GOAL_IN = 9.25;
 
-        static final int kPIPELINE_ALLIANCE_RED = 1;
-        static final int kPIPELINE_ALLIANCE_BLUE = 2;
+        static final int kPIPELINE_ALLIANCE_RED = 2;
+        static final int kPIPELINE_ALLIANCE_BLUE = 1;
         static final int kPIPELINE_OBELISK = 0;
+    }
+
+    public interface Launcher {
+        static double kHOOD_MIN_POS = 0.3;
+        static double kHOOD_MAX_POS = 1;
     }
 
     public interface Drive {

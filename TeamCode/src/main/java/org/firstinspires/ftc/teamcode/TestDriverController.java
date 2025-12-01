@@ -1,12 +1,14 @@
-package org.firstinspires.ftc.teamcode6996_demi;
+package org.firstinspires.ftc.teamcode;
 //gamepad1.back    == robot vs field centric
 //gamepad1.options == reset heading
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -14,27 +16,22 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.Exposur
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode6996_demi.mechanisms.MecanumDrive;
-import org.firstinspires.ftc.teamcode6996_demi.mechanisms.TwoWheelDrive;
+import org.firstinspires.ftc.teamcode.mechanisms.MecanumDrive;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
-import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.Range;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
-@TeleOp(name="DriverControllerggr", group="TeleOp")
-public class DriverControllerSkyler extends OpMode{
+@TeleOp(name="TestDriverController", group="TeleOp")
+public class TestDriverController extends OpMode{
 
-//    private MecanumDrive robot;
-
-    private TwoWheelDrive robot;
+    private MecanumDrive robot;
 
     private  EndgameController endgameControl;
+
     // Adjust these numbers to suit your robot.
     final double DESIRED_DISTANCE = 12.0; //  this is how close the camera should get to the target (inches)
 
@@ -82,7 +79,7 @@ public class DriverControllerSkyler extends OpMode{
     private static final int TAG_RED_GOAL = 24;
     private static final boolean USE_WEBCAM = true;  // Set true to use a webcam, or false for a phone camera
     private static final int DESIRED_TAG_ID = TAG_ANY;     // Choose the tag you want to approach or set to -1 for ANY tag.
-    private VisionPortal visionPortal;               // Used to manage the video source.
+//    private VisionPortal;               // Used to manage the video source.
     private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
     private AprilTagDetection desiredTag = null;     // Used to hold the data for a detected AprilTag
     private boolean targetFound = false;    // Set to true when an AprilTag target is detected
@@ -96,17 +93,16 @@ public class DriverControllerSkyler extends OpMode{
      * Code to run ONCE when the driver hits INIT
      */
     @Override
-    public void init() {robot.init(hardwareMap);
+    public void init() {
         // Define and Initialize Motors
-//        robot = new MecanumDrive();
-        robot = new TwoWheelDrive();
-
+        robot = new MecanumDrive();
+        robot.init(hardwareMap);
 
         endgameControl = new EndgameController();
         endgameControl.init(hardwareMap, telemetry);
         initAprilTag();
     }
-
+    
     /*
      * Code to run REPEATEDLY after the driver hits INIT, but before they hit START
      */
@@ -134,8 +130,8 @@ public class DriverControllerSkyler extends OpMode{
         //  strafe (left-and-right), and 
         //  twist (rotating the whole chassis).
 //        robot.PinPointUpdate();
-        double drive  = -gamepad1.left_stick_y;
-        double strafe = gamepad1.left_stick_x;
+        double drive  = gamepad1.left_stick_y;
+        double strafe = -gamepad1.left_stick_x;
         double twist  = gamepad1.right_stick_x;
 
         boolean strafe_left = gamepad1.left_bumper;
@@ -160,9 +156,9 @@ public class DriverControllerSkyler extends OpMode{
         if (gamepad1.options)
         {
             robot.stop();
-            robot.imu.resetYaw();
-            robot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            robot.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            //robot.imu.resetYaw();
+            //robot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            //robot.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
         if (gamepad1.back && !saved_gamepad1.back)
         {
@@ -209,29 +205,33 @@ public class DriverControllerSkyler extends OpMode{
 
         if (gamepad1.bWasPressed())
         {
-//            robot.intake(1);
+            //robot.intake(1);
             intake_status = IntakeStatus.RUNNING;
         }
         else if ( gamepad1.xWasPressed())
         {
-//            robot.intake(-1);
+            //robot.intake(-1);
             intake_status = IntakeStatus.OPPOSITE;
         }
-      //  else if (gamepad1.aWasPressed())
+        else if (gamepad1.aWasPressed())
         {
-      //      intake_status = IntakeStatus.IDLE;
+            //robot.intake(0);
+            intake_status = IntakeStatus.IDLE;
         }
-        if (gamepad1.yWasPressed()){
-            turret_Motor.setPower(.8);
-        }
-        if (gamepad1.aWasPressed()){
-            hood_Servo.setPosition(.7);
-        }
+
+//        if (gamepad1.yWasPressed()){
+//            turret_Motor.setPower(.8);
+//        }
+//        if (gamepad1.aWasPressed()){
+//            hood_Servo.setPosition(.7);
+//        }
 
         rightTriggerPressed = gamepad1.right_trigger > 0.5;
 
         if (rightTriggerPressed && !lastRightTriggerPressed) {
             endgameStart = true;
+        } else {
+            endgameStart = false;
         }
 
         lastRightTriggerPressed = rightTriggerPressed;
@@ -276,14 +276,14 @@ public class DriverControllerSkyler extends OpMode{
          * from, refer to
          * https://en.wikipedia.org/wiki/Rotation_(mathematics)#Two_dimensions
          */
-        double heading = robot.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-        double heading_deg = robot.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
-        double new_strafe = strafe * Math.cos(heading) - drive * Math.sin(heading);
-        double new_drive  = strafe * Math.sin(heading) + drive * Math.cos(heading); 
+        //double heading = robot.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        //double heading_deg = robot.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+       //double new_strafe = strafe * Math.cos(heading) - drive * Math.sin(heading);
+        //double new_drive  = strafe * Math.sin(heading) + drive * Math.cos(heading);
         if (DRIVER_MODE_FIELD == driver_mode)
         {
-            drive = -new_drive;
-            strafe = -new_strafe;
+            //drive = -new_drive;
+            //strafe = -new_strafe;
         }
 
         // If  is being pressed, AND we have found the desired target, Drive to target Automatically .
@@ -308,20 +308,20 @@ public class DriverControllerSkyler extends OpMode{
         endgameControl.showData();
 
         telemetry.addData("Speed%: ", current_speed);
-        telemetry.addData("heading (degrees)", heading_deg);
+        //telemetry.addData("heading (degrees)", heading_deg);
         telemetry.addData("Left Joy X", gamepad1.left_stick_x);
         telemetry.addData("Left Joy Y", gamepad1.left_stick_y);
         telemetry.addData("Driver Mode", driver_mode_string);
-        int [] target = robot.getAllPositions();
+        //int [] target = robot.getAllPositions();
         telemetry.addData("Path", "Driving");
-        telemetry.addData("LF", target[0]);
-        telemetry.addData("RF", target[1]);
-        telemetry.addData("LB", target[2]);
-        telemetry.addData("RB", target[3]);
+        //telemetry.addData("LF", target[0]);
+        //telemetry.addData("RF", target[1]);
+        //telemetry.addData("LB", target[2]);
+        //telemetry.addData("RB", target[3]);
         telemetry.addData("Intake", intake_status);
-//        telemetry.addData("positionX", Math.round(robot.getPinpointPosition().getX(DistanceUnit.MM)));
-//        telemetry.addData("positionY", Math.round(robot.getPinpointPosition().getY(DistanceUnit.MM)));
-//        telemetry.addData("heading",Math.round(robot.getPinpointPosition().getHeading(AngleUnit.DEGREES)));
+        telemetry.addData("positionX", Math.round(robot.getPinpointPosition().getX(DistanceUnit.MM)));
+        telemetry.addData("positionY", Math.round(robot.getPinpointPosition().getY(DistanceUnit.MM)));
+        telemetry.addData("heading",Math.round(robot.getPinpointPosition().getHeading(AngleUnit.DEGREES)));
         telemetry.update();
         
         //save all of the gamepad 
@@ -339,7 +339,7 @@ public class DriverControllerSkyler extends OpMode{
     
     public void stop_all_move()
     {
-        robot.setRawPower(0,0);
+        robot.setRawPower(0,0,0,0);
     }
 
     /**
@@ -358,18 +358,19 @@ public class DriverControllerSkyler extends OpMode{
         // Note: Decimation can be changed on-the-fly to adapt during a match.
         aprilTag.setDecimation(2);
 
+
         // Create the vision portal by using a builder.
-        if (USE_WEBCAM) {
-            visionPortal = new VisionPortal.Builder()
-                    .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
-                    .addProcessor(aprilTag)
-                    .build();
-        } else {
-            visionPortal = new VisionPortal.Builder()
-                    .setCamera(BuiltinCameraDirection.BACK)
-                    .addProcessor(aprilTag)
-                    .build();
-        }
+//        if (USE_WEBCAM) {
+//            visionPortal = new VisionPortal.Builder()
+//                    .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
+//                    .addProcessor(aprilTag)
+//                    .build();
+//        } else {
+//            visionPortal = new VisionPortal.Builder()
+//                    .setCamera(BuiltinCameraDirection.BACK)
+//                    .addProcessor(aprilTag)
+//                    .build();
+//        }
     }
 
     private void mySleep(int milliseconds)
@@ -385,38 +386,38 @@ public class DriverControllerSkyler extends OpMode{
      Manually set the camera gain and exposure.
      This can only be called AFTER calling initAprilTag(), and only works for Webcams;
     */
-    private void setManualExposure(int exposureMS, int gain) {
+//    private void setManualExposure(int exposureMS, int gain) {
         // Wait for the camera to be open, then use the controls
 
-        if (visionPortal == null) {
-            return;
-        }
+//        if (visionPortal == null) {
+//            return;
+//        }
 
-        runtime.startTime();
+//        runtime.startTime();
         // Make sure camera is streaming before we try to set the exposure controls
-        if (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
-            telemetry.addData("Camera", "Waiting");
-            telemetry.update();
-            while ((visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING)) {
-                mySleep(20);
-            }
-            telemetry.addData("Camera", "Ready");
-            telemetry.update();
-        }
+//        if (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
+//            telemetry.addData("Camera", "Waiting");
+//            telemetry.update();
+//            while ((visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING)) {
+//                mySleep(20);
+//            }
+//            telemetry.addData("Camera", "Ready");
+//            telemetry.update();
+//        }
 
         // Set camera controls unless we are stopping.
 
-            ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
-            if (exposureControl.getMode() != ExposureControl.Mode.Manual) {
-                exposureControl.setMode(ExposureControl.Mode.Manual);
-                mySleep(50);
-            }
-            exposureControl.setExposure((long)exposureMS, TimeUnit.MILLISECONDS);
-            mySleep(20);
-            GainControl gainControl = visionPortal.getCameraControl(GainControl.class);
-            gainControl.setGain(gain);
-            mySleep(20);
-    }
+//            ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
+//            if (exposureControl.getMode() != ExposureControl.Mode.Manual) {
+//                exposureControl.setMode(ExposureControl.Mode.Manual);
+//                mySleep(50);
+//            }
+//            exposureControl.setExposure((long)exposureMS, TimeUnit.MILLISECONDS);
+//            mySleep(20);
+//            GainControl gainControl = visionPortal.getCameraControl(GainControl.class);
+//            gainControl.setGain(gain);
+//            mySleep(20);
+//    }
 
     private void lookingForTag()
     {

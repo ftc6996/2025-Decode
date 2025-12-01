@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.mechanisms;
 
 import static org.firstinspires.ftc.teamcode.Constants.*;
 
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -10,6 +11,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.Constants;
+import org.firstinspires.ftc.teamcode6996_demi.mechanisms.LimeLight;
 
 public class Robot {
 
@@ -18,6 +21,10 @@ public class Robot {
     private Blinky blinky;
     private Servo rgb_light;
     //private Launcher launcher;
+    private Launcher launcher;
+    private LimeLight limeLight;
+    private Limelight3A vision;
+
     private int alliance = kNOT_SET;
 
     public Robot()
@@ -41,6 +48,10 @@ public class Robot {
 
         rgb_light = hardwareMap.get(Servo.class, "rgb_light");
         rgb_light.setPosition(0);
+        vision = hardwareMap.get(Limelight3A.class, "limelight");
+        limeLight = new LimeLight(vision);
+        launcher = new Launcher();
+        launcher.init(hardwareMap);
     }
 
     public void update()
@@ -75,9 +86,11 @@ public class Robot {
         {
             blinky.setRedAlliance();
             rgb_light.setPosition(.28);
+            limeLight.setPipeline(Game.kPIPELINE_ALLIANCE_RED);
         }
         else if (alliance == kALLIANCE_BLUE)
         {
+            limeLight.setPipeline(Game.kPIPELINE_ALLIANCE_BLUE);
             blinky.setBlueAlliance();
             rgb_light.setPosition(0.611);
         }
@@ -88,6 +101,23 @@ public class Robot {
         }
     }
 
+    public void setTurretPower(double power)
+    {
+        launcher.setTurretPower(power);
+    }
+
+    public void setHoodPosition(double pos)
+    {
+        launcher.setHoodPosition(pos);
+    }
+    public double getLauncherHoodPosition()
+    {
+        return launcher.getPositon();
+    }
+    public void getAprilTag()
+    {
+        limeLight.getAprilTags();
+    }
     public void processTelemetry(Telemetry telemetry)
     {
         /*
@@ -108,5 +138,20 @@ public class Robot {
         telemetry.addData("heading",Math.round(robot.getPinpointPosition().getHeading(AngleUnit.DEGREES)));
         telemetry.update();
          */
+    }
+
+    public int getTagID()
+    {
+        return limeLight.getTagID();
+    }
+
+    public double getTagLocationX()
+    {
+        return limeLight.getTagLocationX();
+    }
+
+    public double getTagLocationY()
+    {
+        return limeLight.getTagLocationY();
     }
 }
