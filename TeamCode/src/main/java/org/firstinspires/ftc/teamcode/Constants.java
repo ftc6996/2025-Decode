@@ -36,7 +36,7 @@ public interface Constants {
         static final int kRIGHT_BACK = kRIGHT_REAR;
         static final int kMAX_DRIVE_MOTORS = 4;
 
-        static final double MAX_MOVE_SPEED = .5;
+        static final double MAX_MOVE_SPEED = 1.0;
         static final double MIN_MOVE_SPEED = 0.2;
         static final double SPEED_INCREMENT = 0.1;
 
