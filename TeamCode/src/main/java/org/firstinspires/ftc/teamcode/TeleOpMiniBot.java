@@ -45,12 +45,13 @@ public class TeleOpMiniBot extends OpMode {
             setAlliance(kALLIANCE_RED);
         }
 
-        telemetry.addData("Version", "7");
+        telemetry.addData("Version", "9");
         telemetry.addData("Alliance", allianceString);
         telemetry.update();
     }
     @Override
     public void start() {
+        robot.setMaxSpeed(.7);
         current_speed = robot.getMaxSpeed();
     }
 
@@ -66,6 +67,7 @@ public class TeleOpMiniBot extends OpMode {
 
         //robot.processTelemetry(telemetry);
         //TODO: push some of this down to robot
+
         telemetry.addData("Move Enabled: ", enable_moving);
         telemetry.addData("Speed% ", current_speed);
         telemetry.addData("Drive: ", drive);
