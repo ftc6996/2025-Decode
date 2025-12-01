@@ -39,7 +39,7 @@ public class MecanumDrive {
         this.hardwareMap = hardwareMap;
         initDrive();
         initIMU();
-        //initPinPoint();
+        initPinPoint();
     }
 
     private void initDrive()
