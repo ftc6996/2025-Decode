@@ -5,6 +5,7 @@ import static org.firstinspires.ftc.teamcode.Constants.*;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -15,6 +16,7 @@ public class Robot {
     private MecanumDrive mecanumDrive;
     private DcMotor intake_motor;
     private Blinky blinky;
+    private Servo rgb_light;
     //private Launcher launcher;
     private int alliance = kNOT_SET;
 
@@ -33,8 +35,12 @@ public class Robot {
         intake_motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         intake_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+
         blinky = new Blinky();
         blinky.init(hardwareMap);
+
+        rgb_light = hardwareMap.get(Servo.class, "rgb_light");
+        rgb_light.setPosition(0);
     }
 
     public void update()
@@ -45,6 +51,10 @@ public class Robot {
     {
         double current_speed = mecanumDrive.getMaxSpeed();
         mecanumDrive.setMaxSpeed(current_speed + speed);
+    }
+    public void setMaxSpeed(double speed)
+    {
+        mecanumDrive.setMaxSpeed(speed);
     }
     public double getMaxSpeed()
     {
@@ -64,14 +74,17 @@ public class Robot {
         if (alliance == kALLIANCE_RED)
         {
             blinky.setRedAlliance();
+            rgb_light.setPosition(.28);
         }
         else if (alliance == kALLIANCE_BLUE)
         {
             blinky.setBlueAlliance();
+            rgb_light.setPosition(0.611);
         }
         else
         {
             blinky.setUnknownAlliance();
+            rgb_light.setPosition(0);
         }
     }
 
