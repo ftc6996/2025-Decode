@@ -33,7 +33,6 @@ public class test extends OpMode{
             double stopTurnRangeDeg = 5;//deg
             double targetHeadingDeg = 567;// angle that the robot ends at in deg
             double startAt = 0;
-
             //if (targetHeadingDeg < 0){
            //     targetHeadingDeg = -360-targetHeadingDeg;
             //}
