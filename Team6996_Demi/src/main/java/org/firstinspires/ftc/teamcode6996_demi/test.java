@@ -42,6 +42,7 @@ public class test extends OpMode{
             double moveDeg = angleError(targetHeadingDeg,currentHeadingDeg);
             double thing = targetHeadingDeg -currentHeadingDeg;
             double moveDegAbs = 0;
+
             telemetry.addData("PinPointx in MM", PinPointx);
             telemetry.addData("PinPointy in MM", PinPointy);
             telemetry.addData("currentHeading in DEG", currentHeadingDeg);
