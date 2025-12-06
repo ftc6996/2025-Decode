@@ -19,6 +19,7 @@ import org.firstinspires.ftc.teamcode6996_demi.mechanisms.MecanumDrive;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.firstinspires.ftc.teamcode6996_demi.mechanisms.Blinky;
 
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -32,9 +33,11 @@ import com.qualcomm.robotcore.util.Range;
 @TeleOp(name="DriverController", group="TeleOp")
 public class DriverController extends OpMode{
 
+    private Blinky blinky;
+
     private MecanumDrive robot;
 
-    private  EndgameController endgameControl;
+//    private  EndgameController endgameControl;
 
     // Adjust these numbers to suit your robot.
     final double DESIRED_DISTANCE = 12.0; //  this is how close the camera should get to the target (inches)
@@ -102,8 +105,11 @@ public class DriverController extends OpMode{
         robot = new MecanumDrive();
         robot.init(hardwareMap);
 
-        endgameControl = new EndgameController();
-        endgameControl.init(hardwareMap, telemetry);
+        blinky = new Blinky();
+        blinky.init(hardwareMap, telemetry);
+
+//        endgameControl = new EndgameController();
+//        endgameControl.init(hardwareMap, telemetry);
         initAprilTag();
     }
     
@@ -240,15 +246,15 @@ public class DriverController extends OpMode{
 
         lastRightTriggerPressed = rightTriggerPressed;
 
-        if (gamepad1.dpad_up && gamepad1.dpadUpWasPressed()) {
-            endgameControl.adjustDriveSpeed(0.1);
-        } else if (gamepad1.dpad_down && gamepad1.dpadDownWasPressed()) {
-            endgameControl.adjustDriveSpeed(-0.1);
-        }
-
-        if (gamepad1.y && gamepad1.yWasPressed()) {
-            endgameControl.switchAllianceColor();
-        }
+//        if (gamepad1.dpad_up && gamepad1.dpadUpWasPressed()) {
+//            endgameControl.adjustDriveSpeed(0.1);
+//        } else if (gamepad1.dpad_down && gamepad1.dpadDownWasPressed()) {
+//            endgameControl.adjustDriveSpeed(-0.1);
+//        }
+//
+//        if (gamepad1.y && gamepad1.yWasPressed()) {
+//            endgameControl.switchAllianceColor();
+//        }
 
             /*
         if (strafe_left)
@@ -305,11 +311,15 @@ public class DriverController extends OpMode{
 
             telemetry.addData("Auto","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, twist);
         }
-        if (!endgameControl.processUpdate(robot, endgameStart)) {
-            robot.move(drive, strafe, twist);
-        }
+//        if (!endgameControl.processUpdate(robot, endgameStart)) {
+//            robot.move(drive, strafe, twist);
+//        }
 
-        endgameControl.showData();
+        blinky.processBlinky();
+
+        blinky.showData();
+
+//        endgameControl.showData();
 
         telemetry.addData("Speed%: ", current_speed);
         telemetry.addData("heading (degrees)", heading_deg);

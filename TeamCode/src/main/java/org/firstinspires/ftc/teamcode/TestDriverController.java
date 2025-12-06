@@ -16,6 +16,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.Exposur
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.mechanisms.Blinky;
 import org.firstinspires.ftc.teamcode.mechanisms.MecanumDrive;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -31,6 +32,7 @@ public class TestDriverController extends OpMode{
     private MecanumDrive robot;
 
     private  EndgameController endgameControl;
+    private Blinky blinky;
 
     // Adjust these numbers to suit your robot.
     final double DESIRED_DISTANCE = 12.0; //  this is how close the camera should get to the target (inches)
@@ -100,6 +102,9 @@ public class TestDriverController extends OpMode{
 
         endgameControl = new EndgameController();
         endgameControl.init(hardwareMap, telemetry);
+
+        blinky = new Blinky();
+        blinky.init(hardwareMap, telemetry);
         initAprilTag();
     }
     
@@ -304,6 +309,10 @@ public class TestDriverController extends OpMode{
         if (!endgameControl.processUpdate(robot, endgameStart)) {
             robot.move(drive, strafe, twist);
         }
+
+        blinky.processBlinky();
+
+        blinky.showData();
 
         endgameControl.showData();
 
