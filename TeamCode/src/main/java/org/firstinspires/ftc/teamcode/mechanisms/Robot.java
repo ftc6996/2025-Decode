@@ -6,6 +6,7 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -18,6 +19,8 @@ public class Robot {
     private MecanumDrive mecanumDrive;
     private DcMotor intake_motor;
     private Blinky blinky;
+    private Servo rgb_light;
+    //private Launcher launcher;
     private Launcher launcher;
     private LimeLight limeLight;
     private Limelight3A vision;
@@ -34,15 +37,19 @@ public class Robot {
                 RevHubOrientationOnRobot.UsbFacingDirection.RIGHT);
         mecanumDrive.init(hardwareMap);
 
-        //intake_motor = hardwareMap.get(DcMotor.class, "intake_motor");
-        //intake_motor.setDirection(DcMotor.Direction.FORWARD);
-        //intake_motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        //intake_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        intake_motor = hardwareMap.get(DcMotor.class, "intake_motor");
+        intake_motor.setDirection(DcMotor.Direction.FORWARD);
+        intake_motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        intake_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+
+        blinky = new Blinky();
+        blinky.init(hardwareMap);
+
+        rgb_light = hardwareMap.get(Servo.class, "rgb_light");
+        rgb_light.setPosition(0);
         vision = hardwareMap.get(Limelight3A.class, "limelight");
         limeLight = new LimeLight(vision);
-        //blinky = new Blinky();
-        //blinky.init(hardwareMap);
         launcher = new Launcher();
         launcher.init(hardwareMap);
     }
@@ -55,6 +62,10 @@ public class Robot {
     {
         double current_speed = mecanumDrive.getMaxSpeed();
         mecanumDrive.setMaxSpeed(current_speed + speed);
+    }
+    public void setMaxSpeed(double speed)
+    {
+        mecanumDrive.setMaxSpeed(speed);
     }
     public double getMaxSpeed()
     {
@@ -73,17 +84,20 @@ public class Robot {
     {
         if (alliance == kALLIANCE_RED)
         {
-            //blinky.setRedAlliance();
+            blinky.setRedAlliance();
+            rgb_light.setPosition(.28);
             limeLight.setPipeline(Game.kPIPELINE_ALLIANCE_RED);
         }
         else if (alliance == kALLIANCE_BLUE)
         {
-            //blinky.setBlueAlliance();
             limeLight.setPipeline(Game.kPIPELINE_ALLIANCE_BLUE);
+            blinky.setBlueAlliance();
+            rgb_light.setPosition(0.611);
         }
         else
         {
-            //blinky.setUnknownAlliance();
+            blinky.setUnknownAlliance();
+            rgb_light.setPosition(0);
         }
     }
 
