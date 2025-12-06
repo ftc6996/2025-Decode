@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode6996_demi;
+package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -13,8 +13,8 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.Exposur
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-//import org.firstinspires.ftc.teamcode6996_demi.mechanisms.Launcher;
-import org.firstinspires.ftc.teamcode6996_demi.mechanisms.MecanumDrive;
+import org.firstinspires.ftc.teamcode.mechanisms.MecanumDrive;
+import org.firstinspires.ftc.teamcode.mechanisms.Robot;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -22,15 +22,15 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@Autonomous(name = "Auto_DECODE_Better")
-public class Auto_DECODE extends OpMode {
+@Autonomous(name = "Auto_Test")
+public class Auto_Test extends OpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
 
     int shotsToFire = 3; //The number of shots to fire in this auto.
     double robotRotationAngle = 45;
 
-    private MecanumDrive robot;
+    private Robot robot;
     //private Launcher launcher;
 
     private enum Alliance {
@@ -90,7 +90,7 @@ public class Auto_DECODE extends OpMode {
     @Override
     public void init() {
         // Hardware map setup
-        robot = new MecanumDrive();
+        robot = new Robot();
         robot.init(hardwareMap);
         initAprilTag();
 
@@ -100,9 +100,9 @@ public class Auto_DECODE extends OpMode {
         //launcher.init(hardwareMap);
 
         // Constants for wheel diameter am-4763 ?
-        robot.setWheelDiameter(100);
+        robot.mecanumDrive.setWheelDiameter(100);
         // Constants for encoder counts for AM-2964 AndyMark NeveRest 40 (40:1)
-        robot.setMotorTicksPerRev(1120);
+        robot.mecanumDrive.setMotorTicksPerRev(1120);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -155,13 +155,13 @@ public class Auto_DECODE extends OpMode {
     public void loop() {
         //PinPoint.setPosition(new Pose2D(DistanceUnit.MM, 0, 0, AngleUnit.DEGREES, 0));
         // Setup a variable for each drive wheel to save power level for telemetry
-        int Ytiles = 2;// tiles
-        int Ymm = 0;// mm
+        int Ytiles = 0;// tiles
+        int Ymm = 100;// mm
         int Xtiles = 0;// tiles
         int Xmm = 0;// mm
         double stopRange = 50; // mm
-        double stopTurnRangeDeg = 5;//deg
-        double targetHeadingDeg = -50;// angle that the robot ends at in deg
+        double stopTurnRange = 5;//deg
+        double targetHeading = Math.toRadians(-50);// angle that the robot ends at in deg
 
         double K = 0.005;
         double kTurn = 1.5;//sensitivity of turn. try a range of 0.1-0.4
@@ -170,26 +170,31 @@ public class Auto_DECODE extends OpMode {
 
         double turnPower = 0;
 
-        targetHeadingDeg = Math.toRadians(targetHeadingDeg);
+        targetHeading = Math.toRadians(targetHeading);
         double desiredYDistance = Ymm+(Ytiles*609.6);
         double desiredXDistance = Xmm+(Xtiles*609.6);
-        robot.PinPointUpdate();
-        double PinPointx = robot.getPinpointPosition().getX(DistanceUnit.MM);
-        double PinPointy = robot.getPinpointPosition().getY(DistanceUnit.MM);
-        double currentHeadingRad = Math.toRadians(robot.getPinpointPosition().getHeading(AngleUnit.DEGREES)); // from Pinpoint
-        double currentHeadingDeg = robot.getPinpointPosition().getHeading(AngleUnit.DEGREES); // from Pinpoint
+        robot.update();
+        double PinPointx = robot.mecanumDrive.getPinpointPosition().getX(DistanceUnit.MM);
+        double PinPointy = robot.mecanumDrive.getPinpointPosition().getY(DistanceUnit.MM);
+        double currentHeadingRad = Math.toRadians(robot.mecanumDrive.getPinpointPosition().getHeading(AngleUnit.DEGREES)); // from Pinpoint
+        double currentHeadingDeg = robot.mecanumDrive.getPinpointPosition().getHeading(AngleUnit.DEGREES); // from Pinpoint
 
         /// ////////////note
         double dx = desiredXDistance - PinPointx;
         double dy = desiredYDistance - PinPointy;
         //targetHeading = Math.atan2(dy,dx);
         double distanceError = Math.sqrt(dx*dx + dy*dy);
-        double headingError = targetHeadingDeg - currentHeadingRad;
+        double headingError = targetHeading - currentHeadingRad;
         headingError = Math.atan2(Math.sin(headingError), Math.cos(headingError));
+
+        if (distanceError < stopRange) {
+            robot.move(0, 0, 0);
+            return;
+        }
 
         double slowFactor = distanceError / 300.0;
         slowFactor = Math.min(1.0, Math.max(0.2, slowFactor));
-        if ((Math.toDegrees(targetHeadingDeg)-currentHeadingDeg)<= stopTurnRangeDeg){
+        if (currentHeadingDeg<=stopTurnRange){
             turnPower = 0;
         }else{
             turnPower = headingError * kTurn;
@@ -213,12 +218,7 @@ public class Auto_DECODE extends OpMode {
 
         telemetry.addData("distanceError", distanceError);
         telemetry.addData("slowFactor", slowFactor);
-        if (distanceError < stopRange) {
-            robot.move(0, 0, 0);
-            return;
-        }else{
-            robot.move(xPower, yPower, turnPower);
-        }
+        robot.move(yPower, -xPower, turnPower);
 
         telemetry.addData("Y distance goal in MM", desiredYDistance);
         telemetry.addData("X distance goal in MM", desiredXDistance);
@@ -286,11 +286,11 @@ public class Auto_DECODE extends OpMode {
         telemetry.addData("AutoState", autonomousState);
         telemetry.addData("Obelisk", targetFoundTag);// targetFound ? desiredTag.id : "NONE");
         //telemetry.addData("LauncherState", launcher.getLaunchState());
-        outputPositions("Current", robot.getAllPositions());
-        outputPositions("Target", robot.getAllTargetPositions());
-        telemetry.addData("positionX", Math.round(robot.getPinpointPosition().getX(DistanceUnit.MM)));
-        telemetry.addData("positionY", Math.round(robot.getPinpointPosition().getY(DistanceUnit.MM)));
-        telemetry.addData("heading",Math.round(robot.getPinpointPosition().getHeading(AngleUnit.DEGREES)));
+        outputPositions("Current", robot.mecanumDrive.getAllPositions());
+        outputPositions("Target", robot.mecanumDrive.getAllTargetPositions());
+        telemetry.addData("positionX", Math.round(robot.mecanumDrive.getPinpointPosition().getX(DistanceUnit.MM)));
+        telemetry.addData("positionY", Math.round(robot.mecanumDrive.getPinpointPosition().getY(DistanceUnit.MM)));
+        telemetry.addData("heading",Math.round(robot.mecanumDrive.getPinpointPosition().getHeading(AngleUnit.DEGREES)));
         telemetry.update();
     }
 
@@ -304,7 +304,7 @@ public class Auto_DECODE extends OpMode {
      */
     @Override
     public void stop() {
-        robot.stop();
+        robot.mecanumDrive.stop();
     }
     //////////////////////////////////////////////////////////////////////////////////////////////////
     public void encoderDrive(double speed,
@@ -319,20 +319,20 @@ public class Auto_DECODE extends OpMode {
         final double COUNTS_PER_INCH = COUNTS_PER_MOTOR_REV / (WHEEL_DIAMETER_INCHES * Math.PI);
 
         // Calculate target positions
-        int [] target = robot.getAllPositions();
+        int [] target = robot.mecanumDrive.getAllPositions();
         target[0] += (int)(leftFrontInches * COUNTS_PER_INCH);
         target[1] += (int)(rightFrontInches * COUNTS_PER_INCH);
         target[2] += (int)(leftBackInches * COUNTS_PER_INCH);
         target[3] += (int)(rightBackInches * COUNTS_PER_INCH);
 
         // Set target positions
-        robot.setTargetPosition(target);
+        robot.mecanumDrive.setTargetPosition(target);
 
         // Set to RUN_TO_POSITION mode
-        robot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.mecanumDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         // Set power
-        robot.setRawPower(Math.abs(speed));
+        robot.mecanumDrive.setRawPower(Math.abs(speed));
 
         // Start movement and wait for completion or timeout
         runtime.reset();
@@ -351,10 +351,10 @@ public class Auto_DECODE extends OpMode {
         }
 */
         // Stop all motion
-        robot.stop();
+        robot.mecanumDrive.stop();
 
         // Set motors back to RUN_USING_ENCODER mode
-        robot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.mecanumDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void MoveForward(double speed, double inches, double timeoutS) {
@@ -507,8 +507,8 @@ public class Auto_DECODE extends OpMode {
     private void lookingForGoalTag(Alliance alliancePicked) {
 
         boolean driveToRequested = false;
-        double heading = robot.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-        double heading_deg = robot.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+        double heading = robot.mecanumDrive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        double heading_deg = robot.mecanumDrive.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
         final double MAX_AUTO_SPEED = 0.5;   //  Clip the approach speed to this max value (adjust for your robot)
         final double MAX_AUTO_STRAFE= 0.5;   //  Clip the strafing speed to this max value (adjust for your robot)
         final double MAX_AUTO_TURN  = 0.3;   //  Clip the turn speed to this max value (adjust for your robot)

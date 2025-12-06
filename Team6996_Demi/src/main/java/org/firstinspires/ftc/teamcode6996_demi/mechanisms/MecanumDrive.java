@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.teamcode6996_demi.GoBildaPinpointDriver;
+import org.firstinspires.ftc.teamcode6996_demi.mechanisms.GoBildaPinpointDriver;
 
 public class MecanumDrive {
     private DcMotor left_front_drive  = null;
@@ -88,24 +88,19 @@ public class MecanumDrive {
         right_front_drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         right_rear_drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        intake = hardwareMap.get(CRServo.class, "servo0");
+        //intake = hardwareMap.get(CRServo.class, "servo0");
 
         imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(orientation);
         imu.initialize(parameters);
-        isInitialized = true;
 
         PinPoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-
         PinPoint.setPosition(new Pose2D(DistanceUnit.MM,0,0,AngleUnit.DEGREES,0));
-
-        PinPoint.setOffsets(90,0,DistanceUnit.MM);
-
+        PinPoint.setOffsets(120,50,DistanceUnit.MM);
         PinPoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-
         PinPoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
 
-
+        isInitialized = true;
     }
 
     public void setWheelDiameter(double diameter)

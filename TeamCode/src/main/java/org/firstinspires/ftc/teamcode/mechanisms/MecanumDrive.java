@@ -14,16 +14,20 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 public class MecanumDrive {
+    private double countsPerMotorRev = 1120; //Demi AM-2964 with 40:1 gearbox
+    private double wheelDiameter = 102;
     private DcMotor left_front_drive  = null;
     private DcMotor left_rear_drive   = null;
     private DcMotor right_front_drive = null;
     private DcMotor right_rear_drive  = null;
-    private GoBildaPinpointDriver pinpoint;
-    private IMU imu;
+    public GoBildaPinpointDriver pinpoint;
+    public IMU imu;
     private RevHubOrientationOnRobot orientation;
     private HardwareMap hardwareMap;
     private double speedAdjustment = Drive.MAX_MOVE_SPEED;
     private boolean isPinpointInitialized = false;
+    private boolean isInitialized = false;
+
     public MecanumDrive()
     {
         //default to this standard orientation
@@ -39,9 +43,28 @@ public class MecanumDrive {
         this.hardwareMap = hardwareMap;
         initDrive();
         initIMU();
-        //initPinPoint();
-    }
+        initPinPoint();
 
+        isInitialized = true;
+    }
+    public void setWheelDiameter(double diameter)
+    {
+        wheelDiameter = diameter;
+    }
+    public void setMotorTicksPerRev(double ticks)
+    {
+        countsPerMotorRev = ticks;
+    }
+    public void setMode(DcMotor.RunMode mode)
+    {
+        if (!isInitialized)
+            return;
+
+        left_front_drive.setMode(mode);
+        left_rear_drive.setMode(mode);
+        right_front_drive.setMode(mode);
+        right_rear_drive.setMode(mode);
+    }
     private void initDrive()
     {
         left_front_drive  = hardwareMap.get(DcMotor.class, "left_front_drive");
@@ -74,9 +97,9 @@ public class MecanumDrive {
     {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         pinpoint.setPosition(new Pose2D(DistanceUnit.MM,0,0, AngleUnit.DEGREES,0));
-        pinpoint.setOffsets(90,0,DistanceUnit.MM);
+        pinpoint.setOffsets(120,50,DistanceUnit.MM);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
         isPinpointInitialized = true;
     }
     public void setMaxSpeed(double speed)
@@ -148,6 +171,28 @@ public class MecanumDrive {
     public void stop()
     {
         setRawPower(0,0,0,0);
+    }
+    public int[] getAllTargetPositions()
+    {
+        int [] pos = {left_front_drive.getTargetPosition(),
+                right_front_drive.getTargetPosition(),
+                left_rear_drive.getTargetPosition(),
+                right_rear_drive.getTargetPosition()};
+        return pos;
+    }
+    public int[] getAllPositions()
+    {
+        int [] pos = {left_front_drive.getCurrentPosition(),
+                right_front_drive.getCurrentPosition(),
+                left_rear_drive.getCurrentPosition(),
+                right_rear_drive.getCurrentPosition()};
+        return pos;
+    }
+    public void setTargetPosition(int [] pos){
+        left_front_drive.setTargetPosition(pos[0]);
+        right_front_drive.setTargetPosition(pos[1]);
+        left_rear_drive.setTargetPosition(pos[2]);
+        right_rear_drive.setTargetPosition(pos[3]);
     }
     public Pose2D getPinpointPosition(){
         if (!isPinpointInitialized)

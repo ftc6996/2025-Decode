@@ -12,7 +12,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Robot {
 
-    private MecanumDrive mecanumDrive;
+    public MecanumDrive mecanumDrive;
     private DcMotor intake_motor;
     private Blinky blinky;
     //private Launcher launcher;
@@ -27,7 +27,7 @@ public class Robot {
                 RevHubOrientationOnRobot.LogoFacingDirection.UP,
                 RevHubOrientationOnRobot.UsbFacingDirection.RIGHT);
         mecanumDrive.init(hardwareMap);
-
+/*
         intake_motor = hardwareMap.get(DcMotor.class, "intake_motor");
         intake_motor.setDirection(DcMotor.Direction.FORWARD);
         intake_motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -35,6 +35,7 @@ public class Robot {
 
         blinky = new Blinky();
         blinky.init(hardwareMap);
+ */
     }
 
     public void update()

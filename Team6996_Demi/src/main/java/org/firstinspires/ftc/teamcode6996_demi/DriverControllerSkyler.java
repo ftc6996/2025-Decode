@@ -27,7 +27,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
 
-@TeleOp(name="DriverController", group="TeleOp")
+@TeleOp(name="DriverControllerSkyler", group="TeleOp")
 public class DriverControllerSkyler extends OpMode{
 
 //    private MecanumDrive robot;

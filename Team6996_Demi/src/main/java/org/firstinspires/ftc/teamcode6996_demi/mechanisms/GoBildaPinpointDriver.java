@@ -20,7 +20,7 @@
  *   SOFTWARE.
  */
 
-package org.firstinspires.ftc.teamcode6996_demi;
+package org.firstinspires.ftc.teamcode6996_demi.mechanisms;
 
 import static com.qualcomm.robotcore.util.TypeConversion.byteArrayToInt;
 
