@@ -140,90 +140,33 @@ public class Auto_DECODE extends OpMode {
      */
     @Override
     public void start() {
+        boolean isDone = false;
         runtime.reset();
         autonomousState = AutonomousState.START;
+        while (!isDone){
+            isDone = robot.moveToPoint(0,2,5);
+        }
+        isDone = false;
+        while (!isDone){
+            isDone = robot.moveToPoint(0,2,5);
+        }
+        isDone = false;
+        /*robot.moveToPoint(0,0.5,5);
+        robot.turnToPoint(30,1);
+        mySleep(1000);
+        robot.moveToPoint(0.75,1.5,5);
+        robot.turnToPoint(90,1);
+        robot.moveToPoint(1.5,0,5);
+        */
+        stop();
     }
 
     /*
      * Code to run REPEATEDLY after the driver hits START but before they hit STOP
      */
-    public double clamp(double value, double min, double max){
-        return Math.max(min, Math.min(max,value));
-    }
 
     @Override
     public void loop() {
-        //PinPoint.setPosition(new Pose2D(DistanceUnit.MM, 0, 0, AngleUnit.DEGREES, 0));
-        // Setup a variable for each drive wheel to save power level for telemetry
-        int Ytiles = 2;// tiles
-        int Ymm = 0;// mm
-        int Xtiles = 0;// tiles
-        int Xmm = 0;// mm
-        double stopRange = 50; // mm
-        double stopTurnRangeDeg = 5;//deg
-        double targetHeadingDeg = -50;// angle that the robot ends at in deg
-
-        double K = 0.005;
-        double kTurn = 1.5;//sensitivity of turn. try a range of 0.1-0.4
-
-        //don't change anymore variables
-
-        double turnPower = 0;
-
-        targetHeadingDeg = Math.toRadians(targetHeadingDeg);
-        double desiredYDistance = Ymm+(Ytiles*609.6);
-        double desiredXDistance = Xmm+(Xtiles*609.6);
-        robot.PinPointUpdate();
-        double PinPointx = robot.getPinpointPosition().getX(DistanceUnit.MM);
-        double PinPointy = robot.getPinpointPosition().getY(DistanceUnit.MM);
-        double currentHeadingRad = Math.toRadians(robot.getPinpointPosition().getHeading(AngleUnit.DEGREES)); // from Pinpoint
-        double currentHeadingDeg = robot.getPinpointPosition().getHeading(AngleUnit.DEGREES); // from Pinpoint
-
-        /// ////////////note
-        double dx = desiredXDistance - PinPointx;
-        double dy = desiredYDistance - PinPointy;
-        //targetHeading = Math.atan2(dy,dx);
-        double distanceError = Math.sqrt(dx*dx + dy*dy);
-        double headingError = targetHeadingDeg - currentHeadingRad;
-        headingError = Math.atan2(Math.sin(headingError), Math.cos(headingError));
-
-        double slowFactor = distanceError / 300.0;
-        slowFactor = Math.min(1.0, Math.max(0.2, slowFactor));
-        if ((Math.toDegrees(targetHeadingDeg)-currentHeadingDeg)<= stopTurnRangeDeg){
-            turnPower = 0;
-        }else{
-            turnPower = headingError * kTurn;
-            turnPower = Math.max(-0.4, Math.min(0.4, turnPower));
-        }
-        /// ////////////////
-
-        double oPid = K * (Math.sqrt(Math.pow((PinPointy - desiredYDistance), 2) + (Math.pow((PinPointx - desiredXDistance), 2))));
-        telemetry.addData("oPid", oPid);
-        double robotTarget = Math.atan2((desiredYDistance - PinPointy),(desiredXDistance - PinPointx));
-
-        /// ///////////////note
-        double xPower = slowFactor * oPid * Math.cos(robotTarget);
-        double yPower = slowFactor * oPid * Math.sin(robotTarget);
-
-        xPower = clamp(xPower, -1, 1);
-        yPower = clamp(yPower, -1, 1);
-        turnPower = Math.max(-0.4, Math.min(0.4, turnPower));
-
-        /// ///////////////
-
-        telemetry.addData("distanceError", distanceError);
-        telemetry.addData("slowFactor", slowFactor);
-        if (distanceError < stopRange) {
-            robot.move(0, 0, 0);
-            return;
-        }else{
-            robot.move(xPower, yPower, turnPower);
-        }
-
-        telemetry.addData("Y distance goal in MM", desiredYDistance);
-        telemetry.addData("X distance goal in MM", desiredXDistance);
-        telemetry.addData("currentHeading in DEG", currentHeadingDeg);
-        //telemetry.addData("distance in MM", robot.PinPoint.getPosition().getX(DistanceUnit.MM));
 
         //this basically only happens once to find the obelisk for the game
         /*if (!targetFound)

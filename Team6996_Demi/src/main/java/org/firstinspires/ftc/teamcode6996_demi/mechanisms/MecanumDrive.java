@@ -11,7 +11,6 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.teamcode6996_demi.mechanisms.GoBildaPinpointDriver;
 
 public class MecanumDrive {
     private DcMotor left_front_drive  = null;
@@ -230,15 +229,123 @@ public class MecanumDrive {
         // You may need to multiply some of these by -1 to invert direction of
         // the motor.  This is not an issue with the calculations themselves.
         double[] speeds = {
-                (drive + strafe + twist),
-                (drive - strafe - twist),
                 (drive - strafe + twist),
-                (drive + strafe - twist)
+                (drive + strafe - twist),
+                (drive + strafe + twist),
+                (drive - strafe - twist)
         };
         // apply the calculated values to the motors.
         setPower(speeds[0], speeds[1], speeds[2], speeds[3]);
     }
+    public boolean moveToPoint(double targetXInTiles, double targetYInTiles, double stopRangeInMm) {
+        double XDone = 0;
+        double YDone = 0;
+        boolean done = false;
+        while ((XDone + YDone) < 2) {
+            PinPointUpdate();
+            //robot.getPinpointPosition();
+            //if(robot. != null){
+            double slowSpeed = 0.0025;
+            double stopRangeMm = stopRangeInMm;//Mm
+            double targetXMm = targetXInTiles * 609.6;// Distance that the robot ends at in Mm
+            double targetYMm = targetYInTiles * 609.6;// Distance that the robot ends at in Mm
+            targetXMm = -targetXMm;
+            //if (targetHeadingDeg < 0){
+            //     targetHeadingDeg = -360-targetHeadingDeg;
+            //}
+            double currentXMm = getPinpointPosition().getX(DistanceUnit.MM);
+            double currentYMm = getPinpointPosition().getY(DistanceUnit.MM);
+            double XMm = targetXMm - currentXMm;
+            double YMm = targetYMm - currentYMm;
+            double XMmAbs = 0;
+            double YMmAbs = 0;
 
+            //slowCalculator{
+            //Maybe later
+            //}
+
+            if ((Math.abs(targetXMm) - Math.abs(currentXMm)) <= stopRangeMm) {
+                XMm = 0;
+                XDone = 1;
+            } else {
+                XDone = 0;
+                //TranslatorX{
+                XMmAbs = Math.abs(XMm * slowSpeed);
+                XMm = XMm * slowSpeed;
+                if (XMmAbs <= 0.1) {
+                    XMm = 0;
+                }
+                //}
+            }
+            if ((Math.abs(targetYMm) - Math.abs(currentYMm)) <= stopRangeMm) {
+                YMm = 0;
+                YDone = 1;
+            } else {
+                YDone = 0;
+                //TranslatorY{
+                YMmAbs = Math.abs(YMm * slowSpeed);
+                YMm = YMm * slowSpeed;
+                if (YMmAbs <= 0.1) {
+                    YMm = 0;
+                }
+                //}
+            }
+            move(YMm, XMm, 0);
+
+
+            if ((XDone + YDone) < 2) {
+                done = true;
+                return done;
+            }
+        }
+        return done;
+    }
+    public static double angleError(double target, double current){
+        double error = target - current;
+        double errorr = (error + 180) % 360;
+        if(errorr < 0){
+            errorr = errorr + 360;
+        }
+        return errorr - 180;
+    }
+    public void turnToPoint(double targetHeadingInDeg, double stopTurnRangeInDeg)
+    {
+
+        double XDone = 0;
+        double YDone = 0;
+        while((XDone+YDone)<2){
+            PinPointUpdate();
+            //robot.getPinpointPosition();
+            //if(robot. != null){
+            double slowSpeed = 0.01;
+            double stopTurnRangeDeg = stopTurnRangeInDeg;//deg
+            double targetHeadingDeg = targetHeadingInDeg;// angle that the robot ends at in deg
+            //if (targetHeadingDeg < 0){
+            //     targetHeadingDeg = -360-targetHeadingDeg;
+            //}
+            double currentHeadingDeg = getPinpointPosition().getHeading(AngleUnit.DEGREES);
+            double moveDeg = angleError(targetHeadingDeg,currentHeadingDeg);
+            double thing = targetHeadingDeg -currentHeadingDeg;
+            double moveDegAbs = 0;
+
+            //slowCalculator{
+            //Maybe later
+            //}
+
+            if ((Math.abs(targetHeadingDeg) - Math.abs(currentHeadingDeg))<= stopTurnRangeDeg){
+                moveDeg = 0;
+            }else{
+                //TranslatorTurn{
+                moveDegAbs = Math.abs(moveDeg*slowSpeed);
+                moveDeg = moveDeg*slowSpeed;
+                if(moveDegAbs <= 0.1) {
+                    moveDeg = 0;
+                }
+                //}
+            }
+            move(0,0,moveDeg);
+        }
+    }
     /**
      * @param speed From 0-1
      * @param distance In specified unit
