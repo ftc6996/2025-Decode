@@ -244,7 +244,7 @@ public class PedroAuto extends OpMode {
         opModeTimer = new Timer();
         follower = Constants.createFollower(hardwareMap);
 
-
+        launchState = LaunchState.STOPED;
 
         buildPaths();
         follower.setPose(startPose);
@@ -252,11 +252,13 @@ public class PedroAuto extends OpMode {
     public void start(){
         opModeTimer.resetTimer();
         setPathState(pathState);
+        setLaunchState(launchState);
     }
     @Override
     public void loop(){
         follower.update();
         statePathUpdate();
+        stateLaunchUpdate();
         telemetry.addData("path state", pathState.toString());
         telemetry.addData("x", follower.getPose().getX());
         telemetry.addData("y", follower.getPose().getY());
