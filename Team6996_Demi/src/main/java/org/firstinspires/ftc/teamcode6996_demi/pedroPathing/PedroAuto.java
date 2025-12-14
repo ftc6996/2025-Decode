@@ -228,9 +228,13 @@ public class PedroAuto extends OpMode {
         }
     }
 
-    public void setPathState(PathState newState){
-        pathState = newState;
+    public void setPathState(PathState newPathState){
+        pathState = newPathState;
         pathTimer.resetTimer();
+    }
+
+    public void setLaunchState(LaunchState newLaunchState){
+        launchState = newLaunchState;
     }
 
     @Override
