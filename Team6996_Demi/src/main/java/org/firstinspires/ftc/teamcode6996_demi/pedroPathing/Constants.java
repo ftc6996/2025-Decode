@@ -25,14 +25,16 @@ import com.qualcomm.robotcore.hardware.ServoControllerEx;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Constants {
-    public void initOthers(){
+    public static void initOthers(HardwareMap hardwareMap){
         /*
         launch_motor = hardwareMap.get(DcMotor.class, "launch_motor");
         intake_motor = hardwareMap.get(DcMotor.class, "intake_motor");
 
-        turret_hood_servo = hardwareMap.get(Servo.class, "turret_hood_servo");
-        turret_left_servo = hardwareMap.get(Servo.class, "turret_left_servo");
-        turret_right_servo = hardwareMap.get(Servo.class, "turret_right_servo");
+        Servo turret_hood_servo = hardwareMap.get(Servo.class, "turret_hood_servo");
+        Servo turret_left_servo = hardwareMap.get(Servo.class, "turret_left_servo");
+        turret_left_servo.setDirection(Servo.Direction.REVERSE);
+        Servo turret_right_servo = hardwareMap.get(Servo.class, "turret_right_servo");
+
         turret_feeder_servo = hardwareMap.get(Servo.class, "turret_feeder_servo");
         park_lift_servo = hardwareMap.get(Servo.class, "park_lift_servo");
         rgb_servo = hardwareMap.get(RevBlinkinLedDriver.class, "rgb_servo");

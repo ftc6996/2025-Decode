@@ -33,21 +33,22 @@ public class PedroAuto extends OpMode {
         STOPED,
         IDLE,
         FAR_SPEED,
-        CLOSE_SPEED
+        CLOSE_SPEED,
+        LAUNCH
     }
     LaunchState launchState;
 
-    private final Pose startPose = new Pose(56,8,Math.toRadians(90));
+    private final Pose startPose = new Pose(56,8,Math.toRadians(270));
     private final Pose shootPose = new Pose(56,21,Math.toRadians(110));
     private final Pose threePose = new Pose(41,35.5,Math.toRadians(180));
     private final Pose fourPose = new Pose(24.5,35.5,Math.toRadians(180));
-    private final Pose fivePose = new Pose(56,21,Math.toRadians(110));
+    private final Pose fivePose = new Pose(56,21,Math.toRadians(225));
     private final Pose sixPose = new Pose(41,60,Math.toRadians(180));
     private final Pose sevenPose = new Pose(24.5,60,Math.toRadians(180));
     private final Pose eightPose = new Pose(56,21,Math.toRadians(110));
     private final Pose ninePose = new Pose(41,84,Math.toRadians(180));
     private final Pose tenPose = new Pose(24.5,84,Math.toRadians(180));
-    private final Pose endPose = new Pose(19.5,70.5,Math.toRadians(270));
+    private final Pose endPose = new Pose(24.5,70,Math.toRadians(270));
 
     private PathChain driveStartPosShootPos;
     private PathChain moveTwo;
@@ -119,10 +120,11 @@ public class PedroAuto extends OpMode {
                 if(!follower.isBusy()){
                     telemetry.addLine("Done Path 1");
                     follower.followPath(moveTwo,true);
-                    launchState = LaunchState.FAR_SPEED;
-                    if(launchState != LaunchState.FAR_SPEED){
-                        pathState = PathState.MOVE_TWO;
-                    }
+                    pathState = PathState.MOVE_TWO;
+                    //launchState = LaunchState.FAR_SPEED;
+                    //if(launchState == LaunchState.IDLE){
+                    //    pathState = PathState.MOVE_TWO;
+                    //}
                 }
                 break;
             case MOVE_TWO:
@@ -143,10 +145,11 @@ public class PedroAuto extends OpMode {
                 if(!follower.isBusy()){
                     telemetry.addLine("Done Path 4");
                     follower.followPath(moveFive,true);
-                    launchState = LaunchState.FAR_SPEED;
-                    if(launchState != LaunchState.FAR_SPEED){
-                        pathState = PathState.MOVE_FIVE;
-                    }
+                    pathState = PathState.MOVE_FIVE;
+                    //launchState = LaunchState.FAR_SPEED;
+                    //if(launchState == LaunchState.IDLE){
+                    //    pathState = PathState.MOVE_FIVE;
+                    //}
                 }
                 break;
             case MOVE_FIVE:
@@ -167,10 +170,11 @@ public class PedroAuto extends OpMode {
                 if(!follower.isBusy()){
                     telemetry.addLine("Done Path 7");
                     follower.followPath(moveEight,true);
-                    launchState = LaunchState.FAR_SPEED;
-                    if(launchState != LaunchState.FAR_SPEED){
-                        pathState = PathState.MOVE_EIGHT;
-                    }
+                    pathState = PathState.MOVE_EIGHT;
+                    //launchState = LaunchState.FAR_SPEED;
+                    //if(launchState == LaunchState.IDLE){
+                    //    pathState = PathState.MOVE_EIGHT;
+                    //}
                 }
                 break;
             case MOVE_EIGHT:
@@ -209,16 +213,22 @@ public class PedroAuto extends OpMode {
         switch (launchState){
             case STOPED:
                 //set launch motor to 0 velocity
+                //set turret_hood_servo to lowered position
                 break;
             case IDLE:
                 //set launch motor to Idle velocity
+                //set turret_hood_servo to lowered position
                 break;
             case CLOSE_SPEED:
                 //set launch motor to large launch zone set velocity
-                launchState = LaunchState.IDLE;
+                //set turret_hood_servo to large launch zone position
                 break;
             case FAR_SPEED:
                 //set launch motor to small launch zone velocity
+                //set turret_hood_servo to small launch zone position
+                break;
+            case LAUNCH:
+                //activate turret_feeder_servo or pass through or both to get artifact to wheel
                 launchState = LaunchState.IDLE;
                 break;
             default:
@@ -238,10 +248,11 @@ public class PedroAuto extends OpMode {
 
     @Override
     public void init(){
-        pathState = PathState.DRIVE_STARTPOS_SHOOT_POS;
         pathTimer = new Timer();
         opModeTimer = new Timer();
         follower = Constants.createFollower(hardwareMap);
+
+        Constants.initOthers(hardwareMap);
 
         launchState = LaunchState.STOPED;
 
@@ -250,7 +261,7 @@ public class PedroAuto extends OpMode {
     }
     public void start(){
         opModeTimer.resetTimer();
-        setPathState(pathState);
+        setPathState(PathState.DRIVE_STARTPOS_SHOOT_POS);
         setLaunchState(launchState);
     }
     @Override

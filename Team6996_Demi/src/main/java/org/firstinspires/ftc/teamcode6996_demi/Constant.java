@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode6996_demi;
 
-public interface Constants {
+public interface Constant {
     //Alliance
     static final int kNOT_SET = -1;
     static final int kALLIANCE_RED = 1;
