@@ -28,8 +28,8 @@ public interface Constants {
     }
 
     public interface Launcher {
-        static double kHOOD_MIN_POS = 0.3;
-        static double kHOOD_MAX_POS = 1;
+        static double kHOOD_MIN_POS = 1;
+        static double kHOOD_MAX_POS = 0.6;
         static double kLAUNCHER_TARGET_VELOCITY_CLOSE = 1125;
         static double kLAUNCHER_TARGET_VELOCITY_FAR = 2300;
     }
