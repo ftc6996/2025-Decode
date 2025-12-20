@@ -1,17 +1,135 @@
 package org.firstinspires.ftc.teamcode6996_demi.pedroPathing;
 
+import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.configurables.annotations.IgnoreConfigurable;
+import com.bylazar.configurables.PanelsConfigurables;
+import com.bylazar.field.FieldManager;
+import com.bylazar.field.PanelsField;
+import com.bylazar.field.Style;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
+
+import static org.firstinspires.ftc.teamcode6996_demi.pedroPathing.PedroAutoSelect.changes;
+import static org.firstinspires.ftc.teamcode6996_demi.pedroPathing.PedroAutoSelect.drawOnlyCurrent;
+import static org.firstinspires.ftc.teamcode6996_demi.pedroPathing.PedroAutoSelect.draw;
+import static org.firstinspires.ftc.teamcode6996_demi.pedroPathing.PedroAutoSelect.follower;
+import static org.firstinspires.ftc.teamcode6996_demi.pedroPathing.PedroAutoSelect.stopRobot;
+import static org.firstinspires.ftc.teamcode6996_demi.pedroPathing.PedroAutoSelect.telemetryM;
+
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.PathChain;
-import com.pedropathing.util.Timer;
+import com.pedropathing.geometry.*;
+import com.pedropathing.math.*;
+import com.pedropathing.paths.*;
+import com.pedropathing.telemetry.SelectableOpMode;
+import com.pedropathing.util.*;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode6996_demi.mechanisms.MecanumDrive;
 
-@TeleOp
-public class PedroAuto extends OpMode {
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * This is the Tuning class. It contains a selection menu for various tuning OpModes.
+ *
+ * @author Baron Henderson - 20077 The Indubitables
+ * @version 1.0, 6/26/2025
+ */
+@Configurable
+@TeleOp(name = "PedroAutoSelect", group = "Pedro Pathing")
+public class PedroAutoSelect extends SelectableOpMode {
+    public static Follower follower;
+
+    @IgnoreConfigurable
+    static PoseHistory poseHistory;
+
+    @IgnoreConfigurable
+    static TelemetryManager telemetryM;
+
+    @IgnoreConfigurable
+    static ArrayList<String> changes = new ArrayList<>();
+
+    public PedroAutoSelect() {
+        super("Select a Tuning OpMode", a -> {
+            a.folder("Blue", b -> {
+                b.folder("Small Launch Zone",c ->{
+                    c.add("Shoot 3, prepare to classify", S3PtC::new);
+                    //c.add("", ForwardTuner::new);
+                });
+                b.folder("Large Launch Zone", c ->{
+                    //c.add("Localization Test", LocalizationTest::new);
+                    //c.add("Forward Tuner", ForwardTuner::new);
+                });
+            });
+            a.folder("Red", b -> {
+                b.folder("Small Launch Zone",c ->{
+                    //c.add("Localization Test", LocalizationTest::new);
+                    //c.add("Forward Tuner", ForwardTuner::new);
+                });
+                b.folder("Large Launch Zone", c ->{
+                    //c.add("Localization Test", LocalizationTest::new);
+                    //c.add("Forward Tuner", ForwardTuner::new);
+                });
+            });
+            a.folder("Test", b -> {
+                //p.add("Translational Tuner", TranslationalTuner::new);
+                //p.add("Heading Tuner", HeadingTuner::new);
+                //p.add("Drive Tuner", DriveTuner::new);
+                //p.add("Line Tuner", Line::new);
+                //p.add("Centripetal Tuner", CentripetalTuner::new);
+            });
+            /*
+            s.folder("Tests", p -> {
+                p.add("Line", Line::new);
+                p.add("Triangle", Triangle::new);
+                p.add("Circle", Circle::new);
+            });*/
+        });
+    }
+
+    @Override
+    public void onSelect() {
+        if (follower == null) {
+            follower = Constants.createFollower(hardwareMap);
+            PanelsConfigurables.INSTANCE.refreshClass(this);
+        } else {
+            follower = Constants.createFollower(hardwareMap);
+        }
+
+        follower.setStartingPose(new Pose());
+
+        poseHistory = follower.getPoseHistory();
+
+        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+
+        Drawing.init();
+    }
+
+    @Override
+    public void onLog(List<String> lines) {}
+
+    public static void drawOnlyCurrent() {
+        try {
+            Drawing.drawRobot(follower.getPose());
+            Drawing.sendPacket();
+        } catch (Exception e) {
+            throw new RuntimeException("Drawing failed " + e);
+        }
+    }
+
+    public static void draw() {
+        Drawing.drawDebug(follower);
+    }
+
+    /** This creates a full stop of the robot by setting the drive motors to run at 0 power. */
+    public static void stopRobot() {
+        follower.startTeleopDrive(true);
+        follower.setTeleOpDrive(0,0,0,true);
+    }
+}
+
+class S3PtC extends OpMode {
     private MecanumDrive mecanumDrive;
     private Follower follower;
     private Timer pathTimer, opModeTimer;
