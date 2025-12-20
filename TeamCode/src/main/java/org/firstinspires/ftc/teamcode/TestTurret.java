@@ -7,9 +7,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.mechanisms.Launcher;
-import org.firstinspires.ftc.teamcode.mechanisms.MecanumDrive;
 
-@TeleOp(name="TestTurret", group="TeleOp")
+@TeleOp(name="TestTurret", group="TEST")
 public class TestTurret extends OpMode {
 
     Launcher launcher;
@@ -27,12 +26,9 @@ public class TestTurret extends OpMode {
     }
 
     @Override
-    public void start() {
-
-    }
-
-    @Override
     public void loop() {
+
+        launcher.process();
 
         if (gamepad1.left_trigger > 0)
         {

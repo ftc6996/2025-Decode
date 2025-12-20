@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 public class MecanumDrive {
     private DcMotor left_front_drive  = null;
@@ -159,5 +160,60 @@ public class MecanumDrive {
             return;
 
         pinpoint.update();
+    }
+
+    public void resetYaw()
+    {
+        imu.resetYaw();
+    }
+
+    public YawPitchRollAngles getOrientation()
+    {
+        return imu.getRobotYawPitchRollAngles();
+    }
+    public void setMode(DcMotor.RunMode mode)
+    {
+        left_front_drive.setMode(mode);
+        left_rear_drive.setMode(mode);
+        right_front_drive.setMode(mode);
+        right_rear_drive.setMode(mode);
+    }
+    public void setZeroPowerBehavior(DcMotor.ZeroPowerBehavior mode)
+    {
+        left_front_drive.setZeroPowerBehavior(mode);
+        left_rear_drive.setZeroPowerBehavior(mode);
+        right_front_drive.setZeroPowerBehavior(mode);
+        right_rear_drive.setZeroPowerBehavior(mode);
+    }
+    public boolean isAllBusy()
+    {
+        return (left_front_drive.isBusy() &&
+                right_front_drive.isBusy() &&
+                left_rear_drive.isBusy() &&
+                right_rear_drive.isBusy());
+    }
+
+    public boolean isAnyBusy()
+    {
+        return (left_front_drive.isBusy() ||
+                right_front_drive.isBusy() ||
+                left_rear_drive.isBusy() ||
+                right_rear_drive.isBusy());
+    }
+
+    public int[] getAllPositions()
+    {
+        int [] pos = {left_front_drive.getCurrentPosition(),
+                right_front_drive.getCurrentPosition(),
+                left_rear_drive.getCurrentPosition(),
+                right_rear_drive.getCurrentPosition()};
+        return pos;
+    }
+
+    public void setTargetPosition(int [] pos){
+        left_front_drive.setTargetPosition(pos[0]);
+        right_front_drive.setTargetPosition(pos[1]);
+        left_rear_drive.setTargetPosition(pos[2]);
+        right_rear_drive.setTargetPosition(pos[3]);
     }
 }

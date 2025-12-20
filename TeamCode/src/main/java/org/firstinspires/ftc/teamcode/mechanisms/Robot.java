@@ -7,6 +7,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -20,7 +21,6 @@ public class Robot {
     private DcMotor intake_motor;
     private Blinky blinky;
     private Servo rgb_light;
-    //private Launcher launcher;
     private Launcher launcher;
     private LimeLight limeLight;
     private Limelight3A vision;
@@ -58,11 +58,17 @@ public class Robot {
     {
         mecanumDrive.updatePinPoint();
     }
+    public void process(ElapsedTime current)
+    {
+        blinky.process(current);
+    }
+
     public void changeSpeed(double speed)
     {
         double current_speed = mecanumDrive.getMaxSpeed();
         mecanumDrive.setMaxSpeed(current_speed + speed);
     }
+    public MecanumDrive DriveTrain(){ return mecanumDrive; }
     public void setMaxSpeed(double speed)
     {
         mecanumDrive.setMaxSpeed(speed);

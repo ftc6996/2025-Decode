@@ -28,10 +28,18 @@ public interface Constants {
     }
 
     public interface Launcher {
-        static double kHOOD_MIN_POS = 1;
-        static double kHOOD_MAX_POS = 0.6;
-        static double kLAUNCHER_TARGET_VELOCITY_CLOSE = 1125;
-        static double kLAUNCHER_TARGET_VELOCITY_FAR = 2300;
+        static final double kHOOD_MIN_POS = 1;
+        static final double kHOOD_MAX_POS = 0.6;
+        static final double kLAUNCHER_TARGET_VELOCITY_CLOSE = 1125;
+        static final double kLAUNCHER_TARGET_VELOCITY_FAR = 2300;
+        static final double kFEED_TIME_SECONDS = .20;
+        static final double kFEED_OPEN_POS = 0;
+        static final double kFEED_CLOSE_POS = 1.0;
+
+        //bore through encoder
+        static final double kENCODER_CPR = 8192.0;
+        static final double kDEGREES_PER_REVOLUTION = 360.0;
+        static final double kDEGREES_PER_TICK = kDEGREES_PER_REVOLUTION/kENCODER_CPR;
     }
 
     public interface Drive {
@@ -46,6 +54,9 @@ public interface Constants {
         static final double MAX_MOVE_SPEED = 1.0;
         static final double MIN_MOVE_SPEED = 0.2;
         static final double SPEED_INCREMENT = 0.1;
+
+        static final int    DRIVER_MODE_FIELD = 0;
+        static final int    DRIVER_MODE_ROBOT = 1;
 
         static final double TRACK_WIDTH_MM = 404;
 
