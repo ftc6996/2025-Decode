@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode6996_demi.pedroPathing;
+package org.firstinspires.ftc.teamcode6996_demi.pedroPathing.SmallAuto;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
@@ -6,33 +6,34 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode6996_demi.mechanisms.MecanumDrive;
+import org.firstinspires.ftc.teamcode6996_demi.pedroPathing.Constants;
 
-@TeleOp
-public class PedroAuto extends OpMode {
+@Autonomous(name = "BSS3L_Single", group = "Pedro Pathing Small Auto")
+public class BSS3L_Single extends OpMode {
     private MecanumDrive mecanumDrive;
     private Follower follower;
     private Timer pathTimer, opModeTimer;
 
-    public enum PathState{
+    private enum PathState{
         DRIVE_STARTPOS_SHOOT_POS,
         SHOOT_PRELOAD,
         MOVE_TWO,
         MOVE_THREE,
-        MOVE_FOUR,
-        MOVE_FIVE,
-        MOVE_SIX,
-        MOVE_SEVEN,
-        MOVE_EIGHT,
-        MOVE_NINE,
-        MOVE_TEN,
-        END
+        //MOVE_FOUR,
+        //MOVE_FIVE,
+        //MOVE_SIX,
+        //MOVE_SEVEN,
+        //MOVE_EIGHT,
+        //MOVE_NINE,
+        //MOVE_TEN,
+        //END
     }
     PathState pathState;
 
-    public enum LaunchState{
+    private enum LaunchState{
         STOPED,
         IDLE,
         FAR_SPEED,
@@ -41,32 +42,32 @@ public class PedroAuto extends OpMode {
     }
     LaunchState launchState;
 
-    private final Pose startPose = new Pose(56,8,Math.toRadians(90));
-    private final Pose shootPose = new Pose(56,21,Math.toRadians(110));
-    private final Pose threePose = new Pose(41,35.5,Math.toRadians(180));
-    private final Pose fourPose = new Pose(24.5,35.5,Math.toRadians(180));
-    private final Pose fivePose = new Pose(56,21,Math.toRadians(110));
-    private final Pose sixPose = new Pose(41,60,Math.toRadians(180));
-    private final Pose sevenPose = new Pose(24.5,60,Math.toRadians(180));
-    private final Pose eightPose = new Pose(56,21,Math.toRadians(110));
-    private final Pose ninePose = new Pose(41,84,Math.toRadians(180));
-    private final Pose tenPose = new Pose(24.5,84,Math.toRadians(180));
-    private final Pose endPose = new Pose(24.5,70,Math.toRadians(270));
+    private final Pose startPose = new Pose(18,121.5,Math.toRadians(-37));
+    private final Pose shootPose = new Pose(67,84.25,Math.toRadians(135));
+    private final Pose threePose = new Pose(53.25,70,Math.toRadians(135));
+    //private final Pose fourPose = new Pose(24.5,35.5,Math.toRadians(180));
+    //private final Pose fivePose = new Pose(56,21,Math.toRadians(110));
+    //private final Pose sixPose = new Pose(41,60,Math.toRadians(180));
+    //private final Pose sevenPose = new Pose(24.5,60,Math.toRadians(180));
+    //private final Pose eightPose = new Pose(56,21,Math.toRadians(110));
+    //private final Pose ninePose = new Pose(41,84,Math.toRadians(180));
+    //private final Pose tenPose = new Pose(24.5,84,Math.toRadians(180));
+    //private final Pose endPose = new Pose(24.5,70,Math.toRadians(270));
 
     private PathChain driveStartPosShootPos;
     private PathChain moveTwo;
     private PathChain moveThree;
-    private PathChain moveFour;
-    private PathChain moveFive;
-    private PathChain moveSix;
-    private PathChain moveSeven;
-    private PathChain moveEight;
-    private PathChain moveNine;
-    private PathChain moveTen;
-    private PathChain moveEnd;
+    //private PathChain moveFour;
+    //private PathChain moveFive;
+    //private PathChain moveSix;
+    //private PathChain moveSeven;
+    //private PathChain moveEight;
+    //private PathChain moveNine;
+    //private PathChain moveTen;
+    //private PathChain moveEnd;
 
 
-    public void buildPaths(){
+    private void buildPaths(){
         driveStartPosShootPos = follower.pathBuilder()
                 .addPath(new BezierLine(startPose, shootPose))
                 .setLinearHeadingInterpolation(startPose.getHeading(), shootPose.getHeading())
@@ -79,7 +80,7 @@ public class PedroAuto extends OpMode {
                 .addPath(new BezierLine(shootPose, threePose))
                 .setLinearHeadingInterpolation(shootPose.getHeading(), threePose.getHeading())
                 .build();
-        moveFour = follower.pathBuilder()
+        /*moveFour = follower.pathBuilder()
                 .addPath(new BezierLine(threePose, fourPose))
                 .setLinearHeadingInterpolation(threePose.getHeading(), fourPose.getHeading())
                 .build();
@@ -110,10 +111,10 @@ public class PedroAuto extends OpMode {
         moveEnd = follower.pathBuilder()
                 .addPath(new BezierLine(tenPose, endPose))
                 .setLinearHeadingInterpolation(tenPose.getHeading(), endPose.getHeading())
-                .build();
+                .build();*/
     }
 
-    public void statePathUpdate(){
+    private void statePathUpdate(){
         switch(pathState){
             case DRIVE_STARTPOS_SHOOT_POS:
                 follower.followPath(driveStartPosShootPos,true);
@@ -123,7 +124,6 @@ public class PedroAuto extends OpMode {
                 if(!follower.isBusy()){
                     telemetry.addLine("Done Path 1");
                     follower.followPath(moveTwo,true);
-                    pathState = PathState.MOVE_TWO;
                     if (launchState != LaunchState.FAR_SPEED && launchState != LaunchState.IDLE){
                         launchState = LaunchState.FAR_SPEED;
                     }
@@ -142,15 +142,15 @@ public class PedroAuto extends OpMode {
             case MOVE_THREE:
                 if(!follower.isBusy()){
                     telemetry.addLine("Done Path 3");
-                    follower.followPath(moveFour,true);
-                    pathState = PathState.MOVE_FOUR;
+                    if(!follower.isBusy()){
+                        telemetry.addLine("All Paths Done");
+                    }
                 }
                 break;
-            case MOVE_FOUR:
+            /*case MOVE_FOUR:
                 if(!follower.isBusy()){
                     telemetry.addLine("Done Path 4");
                     follower.followPath(moveFive,true);
-                    pathState = PathState.MOVE_FIVE;
                     if (launchState != LaunchState.FAR_SPEED && launchState != LaunchState.IDLE){
                         launchState = LaunchState.FAR_SPEED;
                     }
@@ -177,7 +177,6 @@ public class PedroAuto extends OpMode {
                 if(!follower.isBusy()){
                     telemetry.addLine("Done Path 7");
                     follower.followPath(moveEight,true);
-                    pathState = PathState.MOVE_EIGHT;
                     if (launchState != LaunchState.FAR_SPEED && launchState != LaunchState.IDLE){
                         launchState = LaunchState.FAR_SPEED;
                     }
@@ -211,14 +210,14 @@ public class PedroAuto extends OpMode {
                 if(!follower.isBusy()){
                     telemetry.addLine("All Paths Done");
                 }
-                break;
+                break;*/
             default:
                 telemetry.addLine("No Path State Commanded");
                 break;
         }
     }
 
-    public void stateLaunchUpdate(){
+    private void stateLaunchUpdate(){
         switch (launchState){
             case STOPED:
                 //set launch motor to 0 velocity
@@ -246,12 +245,12 @@ public class PedroAuto extends OpMode {
         }
     }
 
-    public void setPathState(PathState newPathState){
+    private void setPathState(PathState newPathState){
         pathState = newPathState;
         pathTimer.resetTimer();
     }
 
-    public void setLaunchState(LaunchState newLaunchState){
+    private void setLaunchState(LaunchState newLaunchState){
         launchState = newLaunchState;
     }
 
@@ -272,6 +271,7 @@ public class PedroAuto extends OpMode {
         buildPaths();
         follower.setPose(startPose);
     }
+    @Override
     public void start(){
         opModeTimer.resetTimer();
         setPathState(PathState.DRIVE_STARTPOS_SHOOT_POS);
@@ -287,7 +287,6 @@ public class PedroAuto extends OpMode {
         telemetry.addData("RF", target[1]);
         telemetry.addData("LB", target[2]);
         telemetry.addData("RB", target[3]);
-        telemetry.addData("path state", pathState.toString());
         telemetry.addData("x", follower.getPose().getX());
         telemetry.addData("y", follower.getPose().getY());
         telemetry.addData("heading", follower.getPose().getHeading());
