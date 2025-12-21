@@ -48,27 +48,9 @@ public class BLS3L_Single extends OpMode {
     private final Pose startPose = new Pose(18,121.5,Math.toRadians(-37));
     private final Pose shootPose = new Pose(67,84.25,Math.toRadians(135));
     private final Pose threePose = new Pose(53.25,70,Math.toRadians(135));
-    /*private final Pose fourPose = new Pose(24.5,35.5,Math.toRadians(180));
-    private final Pose fivePose = new Pose(56,21,Math.toRadians(110));
-    private final Pose sixPose = new Pose(41,60,Math.toRadians(180));
-    private final Pose sevenPose = new Pose(24.5,60,Math.toRadians(180));
-    private final Pose eightPose = new Pose(56,21,Math.toRadians(110));
-    private final Pose ninePose = new Pose(41,84,Math.toRadians(180));
-    private final Pose tenPose = new Pose(24.5,84,Math.toRadians(180));
-    private final Pose endPose = new Pose(24.5,70,Math.toRadians(270));*/
 
     private PathChain driveStartPosShootPos;
     private PathChain moveTwo;
-    /*private PathChain moveThree;
-    private PathChain moveFour;
-    private PathChain moveFive;
-    private PathChain moveSix;
-    private PathChain moveSeven;
-    private PathChain moveEight;
-    private PathChain moveNine;
-    private PathChain moveTen;
-    private PathChain moveEnd;*/
-
 
     private void buildPaths(){
         driveStartPosShootPos = follower.pathBuilder()
@@ -109,7 +91,6 @@ public class BLS3L_Single extends OpMode {
                         follower.followPath(moveTwo,true);
                     }
                 }
-
                 break;
             case MOVE_TWO:
                 if(!follower.isBusy()){
