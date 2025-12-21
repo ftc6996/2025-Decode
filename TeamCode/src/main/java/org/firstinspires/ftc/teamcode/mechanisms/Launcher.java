@@ -35,12 +35,13 @@ public class Launcher {
         SPIN_UP,
         LAUNCH,
         LAUNCHING,
+        STOPPED
     }
-
     private LaunchState launchState;
+
     public Launcher ()
     {
-
+        launchState = LaunchState.IDLE;
     }
 
 
@@ -56,7 +57,7 @@ public class Launcher {
         turret_servo_right = hardwareMap.get(CRServo.class, "turret_right_servo");
         turret_servo_right.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        //turret_encoder = hardwareMap.get(DcMotor.class, "turret_encoder");
+        turret_encoder = hardwareMap.get(DcMotor.class, "turret_encoder");
         turret_flywheel_motor = hardwareMap.get(DcMotorEx.class, "turret_flywheel_motor");
 
         turret_left_limit_sensor = hardwareMap.get(TouchSensor.class, "turret_left_limit_sensor");
@@ -92,10 +93,12 @@ public class Launcher {
     }
     public void process()
     {
+        /*
         if (isLeftSensorTriggered())
         {
             turret_encoder.setMode(DcMotor.RunMode.RESET_ENCODERS);
         }
+         */
     }
 
     public void shoot(boolean shotRequested, int velocity)
