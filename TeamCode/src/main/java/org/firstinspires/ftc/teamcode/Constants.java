@@ -28,13 +28,13 @@ public interface Constants {
     }
 
     public interface Launcher {
-        static final double kHOOD_MIN_POS = 1;
-        static final double kHOOD_MAX_POS = 0.6;
-        static final double kLAUNCHER_TARGET_VELOCITY_CLOSE = 1125;
-        static final double kLAUNCHER_TARGET_VELOCITY_FAR = 2300;
-        static final double kFEED_TIME_SECONDS = .20;
-        static final double kFEED_OPEN_POS = 0;
-        static final double kFEED_CLOSE_POS = 1.0;
+        static final double kHOOD_MIN_POS = 0.6;
+        static final double kHOOD_MAX_POS = 1.0;
+        static final int kLAUNCHER_TARGET_VELOCITY_CLOSE = 400; //1125;
+        static final int kLAUNCHER_TARGET_VELOCITY_FAR = 800;
+        static final double kFEED_TIME_SECONDS = 1;
+        static final double kFEED_OPEN_POS = .1;
+        static final double kFEED_CLOSE_POS = .6;
 
         //bore through encoder
         static final double kENCODER_CPR = 8192.0;

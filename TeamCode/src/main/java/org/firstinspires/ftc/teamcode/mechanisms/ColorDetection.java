@@ -27,7 +27,7 @@ public class ColorDetection {
 
     public void init(HardwareMap hardwareMap, Telemetry telemetry, String sensorName) {
 
-        colorSensor = hardwareMap.get(NormalizedColorSensor.class, "sensor_color");
+        colorSensor = hardwareMap.get(NormalizedColorSensor.class, sensorName);
 
         // Tell the sensor our desired gain value (normally you would do this during initialization,
         // not during the loop)

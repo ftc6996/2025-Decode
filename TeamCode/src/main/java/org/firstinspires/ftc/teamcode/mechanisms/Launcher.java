@@ -3,6 +3,9 @@ package org.firstinspires.ftc.teamcode.mechanisms;
 import static org.firstinspires.ftc.teamcode.Constants.Launcher.kFEED_CLOSE_POS;
 import static org.firstinspires.ftc.teamcode.Constants.Launcher.kFEED_OPEN_POS;
 import static org.firstinspires.ftc.teamcode.Constants.Launcher.kFEED_TIME_SECONDS;
+import static org.firstinspires.ftc.teamcode.Constants.Launcher.kHOOD_MAX_POS;
+import static org.firstinspires.ftc.teamcode.Constants.Launcher.kHOOD_MIN_POS;
+import static org.firstinspires.ftc.teamcode.Constants.Launcher.kLAUNCHER_TARGET_VELOCITY_FAR;
 
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -29,15 +32,17 @@ public class Launcher {
     public TouchSensor turret_right_limit_sensor = null;
     private DcMotorEx turret_flywheel_motor;
     ElapsedTime feederTimer = new ElapsedTime();
+private int target_velocity;
+private boolean shotRequested = false;
 
-    private enum LaunchState {
+    public enum LaunchState {
         IDLE,
         SPIN_UP,
         LAUNCH,
         LAUNCHING,
         STOPPED
     }
-    private LaunchState launchState;
+    public LaunchState launchState;
 
     public Launcher ()
     {
@@ -62,6 +67,8 @@ public class Launcher {
 
         turret_left_limit_sensor = hardwareMap.get(TouchSensor.class, "turret_left_limit_sensor");
         turret_right_limit_sensor = hardwareMap.get(TouchSensor.class, "turret_right_limit_sensor");
+
+        turret_feeder_servo.setPosition(kFEED_OPEN_POS);
     }
 
     /// Power > 0 turn left, Power < 0 turn right
@@ -73,7 +80,7 @@ public class Launcher {
 
     public void setHoodPosition(double pos)
     {
-        pos = Range.clip(pos, Constants.Launcher.kHOOD_MIN_POS,Constants.Launcher.kHOOD_MAX_POS);
+        pos = Range.clip(pos, kHOOD_MIN_POS, kHOOD_MAX_POS);
         hood_servo.setPosition(pos);
     }
 
@@ -93,16 +100,6 @@ public class Launcher {
     }
     public void process()
     {
-        /*
-        if (isLeftSensorTriggered())
-        {
-            turret_encoder.setMode(DcMotor.RunMode.RESET_ENCODERS);
-        }
-         */
-    }
-
-    public void shoot(boolean shotRequested, int velocity)
-    {
         switch (launchState) {
             case IDLE:
                 if (shotRequested) {
@@ -110,8 +107,17 @@ public class Launcher {
                 }
                 break;
             case SPIN_UP:
-                turret_flywheel_motor.setVelocity(velocity);
-                if (turret_flywheel_motor.getVelocity() > (velocity * .80)) {
+                turret_flywheel_motor.setVelocity(target_velocity);
+                if (target_velocity == kLAUNCHER_TARGET_VELOCITY_FAR)
+                {
+                    hood_servo.setPosition(kHOOD_MAX_POS);
+                }
+                else
+                {
+                    hood_servo.setPosition(kHOOD_MIN_POS);
+                }
+                double current_velocity = Math.abs(turret_flywheel_motor.getVelocity());
+                if (current_velocity > (target_velocity * .95)) {
                     launchState = LaunchState.LAUNCH;
                 }
                 break;
@@ -124,9 +130,26 @@ public class Launcher {
                 if (feederTimer.seconds() > kFEED_TIME_SECONDS) {
                     launchState = LaunchState.IDLE;
                     turret_feeder_servo.setPosition(kFEED_OPEN_POS);
+                    target_velocity = 0;
+                    turret_flywheel_motor.setVelocity(target_velocity);
+                    shotRequested = false;
                 }
                 break;
         }
+    }
+
+    public double getFlyWheelVelocity()
+    {
+        return turret_flywheel_motor.getVelocity();
+    }
+    public double getTargetVelocity()
+    {
+        return target_velocity;
+    }
+    public void shoot(boolean startShoot, int velocity)
+    {
+        shotRequested = startShoot;
+        target_velocity = Math.abs(velocity);
     }
 /*
     private void rotateToTag(boolean turnRequested)

@@ -1,33 +1,21 @@
 package org.firstinspires.ftc.teamcode;
 //gamepad1.back    == robot vs field centric
 //gamepad1.options == reset heading
-import static org.firstinspires.ftc.teamcode.Constants.Game.*;
 import static org.firstinspires.ftc.teamcode.Constants.Drive.*;
+import static org.firstinspires.ftc.teamcode.Constants.Launcher.*;
 
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.mechanisms.EndgameController;
 import org.firstinspires.ftc.teamcode.mechanisms.Robot;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-
-
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.Range;
+
 
 
 @TeleOp(name="DriverController", group="TeleOp")
@@ -35,6 +23,8 @@ public class DriverController extends OpMode{
 
     public Robot robot = new Robot();
     public double current_speed = .5;
+
+    //private EndgameController endgameControl;
     
 
     public int driver_mode = DRIVER_MODE_ROBOT;
@@ -44,6 +34,7 @@ public class DriverController extends OpMode{
     
     private ElapsedTime runtime = new ElapsedTime();
     private boolean targetFound = false;
+    private boolean intake_on = false;
       /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -51,6 +42,9 @@ public class DriverController extends OpMode{
     public void init() {
         // Define and Initialize Motors
         robot.init(hardwareMap);
+
+       // endgameControl = new EndgameController();
+        //endgameControl.init(hardwareMap, telemetry);
     }
     
     /*
@@ -76,15 +70,17 @@ public class DriverController extends OpMode{
      */
     @Override
     public void loop() {
+        boolean endgameStart = false;
+
         robot.update();
         robot.process(runtime);
         // Mecanum drive is controlled with three axes: 
         //  drive (front-and-back),
         //  strafe (left-and-right), and 
         //  twist (rotating the whole chassis).
-        double drive  = -gamepad1.left_stick_y;
+        double drive  = gamepad1.left_stick_y;
         double strafe = gamepad1.left_stick_x;
-        double twist  = gamepad1.right_stick_x;
+        double twist  = -gamepad1.right_stick_x;
 
         boolean strafe_left = gamepad1.left_bumper;
         boolean strafe_right = gamepad1.right_bumper;
@@ -155,13 +151,54 @@ public class DriverController extends OpMode{
 
         if (strafe_left)
         {
-            strafe = -current_speed;
+            strafe = current_speed;
         }
         else if (strafe_right)
         {
-            strafe = current_speed;
+            strafe = -current_speed;
         }
 
+        if (gamepad1.aWasPressed())
+        {
+            intake_on = !intake_on;
+
+            if (intake_on) {
+                robot.intake(1);
+            }
+            else {
+                robot.intake(0);
+            }
+        }
+
+        if (gamepad2.left_trigger > 0)
+        {
+            robot.setTurretPower(gamepad2.left_trigger);
+        }
+        else if (gamepad2.right_trigger > 0)
+        {
+            robot.setTurretPower(-gamepad2.right_trigger);
+        }
+        else
+        {
+            robot.setTurretPower(0);
+        }
+        if (gamepad2.dpadLeftWasPressed())
+        {
+
+        }
+        if (gamepad2.dpadRightWasPressed())
+        {
+
+        }
+
+        if (gamepad2.rightBumperWasPressed())
+        {
+            robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_CLOSE);
+        }
+        if (gamepad2.leftBumperWasPressed())
+        {
+            robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_FAR);
+        }
         /*
          * If we had a gyro and wanted to do field-oriented control, here
          * is where we would implement it.
@@ -192,6 +229,14 @@ public class DriverController extends OpMode{
             strafe = -new_strafe;
         }
 /*
+        if (gamepad1.bWasPressed()) {
+            endgameStart = true;
+        } else {
+            endgameStart = false;
+        }
+
+ */
+/*
         // If  is being pressed, AND we have found the desired target, Drive to target Automatically .
         if (strafe_left && targetFound) {
 
@@ -211,6 +256,13 @@ public class DriverController extends OpMode{
  */
         robot.move(drive, strafe, twist);
 
+        /*
+        if (!endgameControl.processUpdate(robot.DriveTrain(), endgameStart)) {
+            robot.move(drive, strafe, twist);
+        }
+
+        endgameControl.showData();
+*/
         robot.processTelemetry(telemetry);
         telemetry.addData("Speed%: ", current_speed);
         telemetry.addData("heading (degrees)", heading_deg);

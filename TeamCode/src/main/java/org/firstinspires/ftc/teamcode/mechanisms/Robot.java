@@ -4,6 +4,7 @@ import static org.firstinspires.ftc.teamcode.Constants.*;
 
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -24,6 +25,7 @@ public class Robot {
     private Launcher launcher;
     private LimeLight limeLight;
     private Limelight3A vision;
+    private CRServo servo0, servo1, servo2;
 
     private int alliance = kNOT_SET;
 
@@ -42,6 +44,9 @@ public class Robot {
         intake_motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         intake_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        servo0 = hardwareMap.get(CRServo.class, "intake_servo0");
+        servo1 = hardwareMap.get(CRServo.class, "intake_servo1");
+        servo2 = hardwareMap.get(CRServo.class, "intake_servo2");
 
         blinky = new Blinky();
         blinky.init(hardwareMap);
@@ -61,6 +66,7 @@ public class Robot {
     public void process(ElapsedTime current)
     {
         blinky.process(current);
+        launcher.process();
     }
 
     public void changeSpeed(double speed)
@@ -84,6 +90,9 @@ public class Robot {
     public void intake(double power)
     {
         intake_motor.setPower(power);
+        servo0.setPower(power);
+        servo1.setPower(-power);
+        servo2.setPower(-power);
     }
 
     public void setAlliance(int alliance)
@@ -120,12 +129,19 @@ public class Robot {
     {
         return launcher.getHoodPositon();
     }
+    public void shoot(boolean shotRequested, int velocity)
+    {
+        launcher.shoot(shotRequested, velocity);
+    }
     public void getAprilTag()
     {
         limeLight.getAprilTags();
     }
     public void processTelemetry(Telemetry telemetry)
     {
+        telemetry.addData("Launch State: ", launcher.launchState);
+        telemetry.addData("Launch Target Velocity:", launcher.getTargetVelocity());
+        telemetry.addData("Launch Current Velocity:", launcher.getFlyWheelVelocity());
         /*
         telemetry.addData("Speed%: ", current_speed);
         telemetry.addData("heading (degrees)", heading_deg);
