@@ -35,6 +35,7 @@ public class DriverController extends OpMode{
     private ElapsedTime runtime = new ElapsedTime();
     private boolean targetFound = false;
     private boolean intake_on = false;
+    private boolean outtake_on = false;
       /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -82,8 +83,10 @@ public class DriverController extends OpMode{
         double strafe = gamepad1.left_stick_x;
         double twist  = -gamepad1.right_stick_x;
 
-        boolean strafe_left = gamepad1.left_bumper;
-        boolean strafe_right = gamepad1.right_bumper;
+       boolean strafe_left = gamepad1.left_bumper;
+       boolean strafe_right = gamepad1.right_bumper;
+        //boolean strafe_left = gamepad1.right_stick_x < 0;
+        //boolean strafe_right = gamepad1.right_stick_x > 0;
 
         //lookingForTag();
 
@@ -169,6 +172,31 @@ public class DriverController extends OpMode{
                 robot.intake(0);
             }
         }
+        if (gamepad1.bWasPressed())
+        {
+            outtake_on = !outtake_on;
+
+            if (outtake_on) {
+                robot.intake(-1);
+            }
+            else {
+                robot.intake(0);
+            }
+        }
+
+        /*if (gamepad1.ri > 0)
+        {
+            twist = gamepad1.left_trigger;
+        }
+        else if (gamepad1.right_trigger > 0)
+        {
+            twist = -gamepad1.right_trigger;
+
+        }
+        else
+        {
+            twist = 0;
+        }*/
 
         if (gamepad2.left_trigger > 0)
         {

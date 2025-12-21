@@ -3,12 +3,14 @@ package org.firstinspires.ftc.teamcode;
 import static org.firstinspires.ftc.teamcode.Constants.Launcher.kHOOD_MAX_POS;
 import static org.firstinspires.ftc.teamcode.Constants.Launcher.kHOOD_MIN_POS;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.mechanisms.Launcher;
 
 @TeleOp(name="TestTurret", group="TEST")
+@Disabled
 public class TestTurret extends OpMode {
 
     Launcher launcher;

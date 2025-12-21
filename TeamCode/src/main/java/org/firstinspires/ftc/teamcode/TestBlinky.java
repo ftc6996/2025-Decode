@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -8,6 +9,7 @@ import org.firstinspires.ftc.teamcode.mechanisms.Blinky;
 import org.firstinspires.ftc.teamcode.mechanisms.Launcher;
 
 @TeleOp(name="TestBlinky", group="TEST")
+@Disabled
 public class TestBlinky extends OpMode {
 
     private Blinky blinky;
