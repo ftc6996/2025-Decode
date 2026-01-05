@@ -1,12 +1,11 @@
 package org.firstinspires.ftc.teamcode.mechanisms;
 
-import static org.firstinspires.ftc.teamcode.Constants.Launcher.kFEED_CLOSE_POS;
-import static org.firstinspires.ftc.teamcode.Constants.Launcher.kFEED_OPEN_POS;
-import static org.firstinspires.ftc.teamcode.Constants.Launcher.kFEED_TIME_SECONDS;
-import static org.firstinspires.ftc.teamcode.Constants.Launcher.kHOOD_MAX_POS;
-import static org.firstinspires.ftc.teamcode.Constants.Launcher.kHOOD_MIN_POS;
-import static org.firstinspires.ftc.teamcode.Constants.Launcher.kLAUNCHER_TARGET_VELOCITY_FAR;
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad2;
+import static org.firstinspires.ftc.teamcode.Constants.Game.*;
+import static org.firstinspires.ftc.teamcode.Constants.Launcher.*;
 
+
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -16,8 +15,13 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 
+
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.Constants;
+import org.firstinspires.ftc.teamcode.mechanisms.LimeLight;
+
 
 public class Launcher {
     private Servo hood_servo;
@@ -32,8 +36,14 @@ public class Launcher {
     public TouchSensor turret_right_limit_sensor = null;
     private DcMotorEx turret_flywheel_motor;
     ElapsedTime feederTimer = new ElapsedTime();
-private int target_velocity;
-private boolean shotRequested = false;
+
+    public Limelight3A vision;
+    public LimeLight limeLight;
+
+    private int target_velocity;
+    public int target_tag = kTAG_ANY;
+    public boolean isTargetFound = false;
+    private boolean shotRequested = false;
 
     public enum LaunchState {
         IDLE,
@@ -43,12 +53,19 @@ private boolean shotRequested = false;
         STOPPED
     }
     public LaunchState launchState;
-
+    public enum TurningState {
+        IDLE,
+        START_LEFT,
+        START_RIGHT,
+        READING,
+        STOP
+    }
+    public TurningState turningState;
     public Launcher ()
     {
+        turningState = TurningState.IDLE;
         launchState = LaunchState.IDLE;
     }
-
 
     public void init(HardwareMap hardwareMap)
     {
@@ -69,6 +86,9 @@ private boolean shotRequested = false;
         turret_right_limit_sensor = hardwareMap.get(TouchSensor.class, "turret_right_limit_sensor");
 
         turret_feeder_servo.setPosition(kFEED_OPEN_POS);
+
+        vision = hardwareMap.get(Limelight3A.class, "limelight");
+        limeLight = new LimeLight(vision);
     }
 
     /// Power > 0 turn left, Power < 0 turn right
@@ -76,8 +96,13 @@ private boolean shotRequested = false;
     {
         turret_servo_left.setPower(power);
         turret_servo_right.setPower(power);
+        //turningState = Launcher.TurningState.IDLE;
     }
 
+    public void setFlyWheelVelocity(double velocity)
+    {
+        turret_flywheel_motor.setVelocity(velocity);
+    }
     public void setHoodPosition(double pos)
     {
         pos = Range.clip(pos, kHOOD_MIN_POS, kHOOD_MAX_POS);
@@ -100,6 +125,49 @@ private boolean shotRequested = false;
     }
     public void process()
     {
+        limeLight.clearFoundAprilTag();
+        limeLight.getAprilTags();
+        isTargetFound = (limeLight.getTagID() == target_tag);
+
+        switch (turningState)
+        {
+            case IDLE:
+            {
+                //do nothing
+                break;
+            }
+            case START_LEFT:
+            {
+                setTurretPower(kAUTO_TURN_SPEED);
+                turningState = TurningState.READING;
+                break;
+            }
+            case START_RIGHT:
+            {
+                setTurretPower(-kAUTO_TURN_SPEED);
+                turningState = TurningState.READING;
+                break;
+            }
+            case READING:
+            {
+                //check to see if we can read the tag, maybe some tolerance
+                if (isTargetFound) {
+                    turningState = TurningState.STOP;
+                }
+                break;
+            }
+            case STOP:
+            {
+                turningState = TurningState.IDLE;
+                setTurretPower(0.0);
+                break;
+            }
+            default:
+            {
+                //do nothing
+                break;
+            }
+        }
         switch (launchState) {
             case IDLE:
                 if (shotRequested) {
@@ -130,8 +198,8 @@ private boolean shotRequested = false;
                 if (feederTimer.seconds() > kFEED_TIME_SECONDS) {
                     launchState = LaunchState.IDLE;
                     turret_feeder_servo.setPosition(kFEED_OPEN_POS);
-                    target_velocity = 0;
-                    turret_flywheel_motor.setVelocity(target_velocity);
+                    //target_velocity = 0;
+                    //turret_flywheel_motor.setVelocity(target_velocity);
                     shotRequested = false;
                 }
                 break;
@@ -151,40 +219,4 @@ private boolean shotRequested = false;
         shotRequested = startShoot;
         target_velocity = Math.abs(velocity);
     }
-/*
-    private void rotateToTag(boolean turnRequested)
-    {
-        switch(turningState)
-        {
-            case IDLE:{
-                if (turnRequested) {
-                    turningState = TurningState.START;
-                }
-                break;
-            }
-            case START:{
-                arcadeDrive(0, .25);
-                turningState = TurningState.READING;
-                break;
-
-            }
-            case READING:{
-                if (targetFound)
-                {
-                    turningState = TurningState.STOP;
-                }
-                break;
-
-            }
-            case STOP:{
-                arcadeDrive(0, 0);
-                turningState = TurningState.IDLE;
-                launch(true);
-                break;
-
-            }
-        }
-    }
-    */
-
 }

@@ -14,8 +14,6 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Constants;
-import org.firstinspires.ftc.teamcode6996_demi.mechanisms.LimeLight;
-
 public class Robot {
 
     private MecanumDrive mecanumDrive;
@@ -23,8 +21,6 @@ public class Robot {
     private Blinky blinky;
     private Servo rgb_light;
     private Launcher launcher;
-    private LimeLight limeLight;
-    private Limelight3A vision;
     private CRServo servo0, servo1, servo2;
 
     private int alliance = kNOT_SET;
@@ -53,8 +49,6 @@ public class Robot {
 
         rgb_light = hardwareMap.get(Servo.class, "rgb_light");
         rgb_light.setPosition(0);
-        vision = hardwareMap.get(Limelight3A.class, "limelight");
-        limeLight = new LimeLight(vision);
         launcher = new Launcher();
         launcher.init(hardwareMap);
     }
@@ -95,17 +89,27 @@ public class Robot {
         servo2.setPower(-power);
     }
 
+    public void seekTagLeft()
+    {
+        //set some value for state machine
+        launcher.turningState = Launcher.TurningState.START_LEFT;
+    }
+    public void seekTagRight()
+    {
+        //set some value for state machine
+        launcher.turningState = Launcher.TurningState.START_RIGHT;
+    }
     public void setAlliance(int alliance)
     {
         if (alliance == kALLIANCE_RED)
         {
             blinky.setRedAlliance();
             rgb_light.setPosition(.28);
-            limeLight.setPipeline(Game.kPIPELINE_ALLIANCE_RED);
+            launcher.limeLight.setPipeline(Game.kPIPELINE_ALLIANCE_RED);
         }
         else if (alliance == kALLIANCE_BLUE)
         {
-            limeLight.setPipeline(Game.kPIPELINE_ALLIANCE_BLUE);
+            launcher.limeLight.setPipeline(Game.kPIPELINE_ALLIANCE_BLUE);
             blinky.setBlueAlliance();
             rgb_light.setPosition(0.611);
         }
@@ -121,6 +125,10 @@ public class Robot {
         launcher.setTurretPower(power);
     }
 
+    public void setTurretFlyWheelVelocity(double velocity)
+    {
+        launcher.setFlyWheelVelocity(velocity);
+    }
     public void setHoodPosition(double pos)
     {
         launcher.setHoodPosition(pos);
@@ -135,7 +143,7 @@ public class Robot {
     }
     public void getAprilTag()
     {
-        limeLight.getAprilTags();
+        launcher.limeLight.getAprilTags();
     }
     public void processTelemetry(Telemetry telemetry)
     {
@@ -162,18 +170,15 @@ public class Robot {
          */
     }
 
-    public int getTagID()
-    {
-        return limeLight.getTagID();
-    }
+    public int getTagID() {return launcher.limeLight.getTagID();}
 
     public double getTagLocationX()
     {
-        return limeLight.getTagLocationX();
+        return launcher.limeLight.getTagLocationX();
     }
 
     public double getTagLocationY()
     {
-        return limeLight.getTagLocationY();
+        return launcher.limeLight.getTagLocationY();
     }
 }

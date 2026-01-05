@@ -3,19 +3,24 @@ package org.firstinspires.ftc.teamcode;
 //gamepad1.options == reset heading
 import static org.firstinspires.ftc.teamcode.Constants.Drive.*;
 import static org.firstinspires.ftc.teamcode.Constants.Launcher.*;
+import static org.firstinspires.ftc.teamcode.Constants.kALLIANCE_RED;
 
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.mechanisms.EndgameController;
+import org.firstinspires.ftc.teamcode.mechanisms.Launcher;
 import org.firstinspires.ftc.teamcode.mechanisms.Robot;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import java.util.List;
 
 
 @TeleOp(name="DriverController", group="TeleOp")
@@ -36,6 +41,7 @@ public class DriverController extends OpMode{
     private boolean targetFound = false;
     private boolean intake_on = false;
     private boolean outtake_on = false;
+    private int alliance = kALLIANCE_RED;
       /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -161,28 +167,7 @@ public class DriverController extends OpMode{
             strafe = -current_speed;
         }
 
-        if (gamepad1.aWasPressed())
-        {
-            intake_on = !intake_on;
 
-            if (intake_on) {
-                robot.intake(1);
-            }
-            else {
-                robot.intake(0);
-            }
-        }
-        if (gamepad1.bWasPressed())
-        {
-            outtake_on = !outtake_on;
-
-            if (outtake_on) {
-                robot.intake(-1);
-            }
-            else {
-                robot.intake(0);
-            }
-        }
 
         /*if (gamepad1.ri > 0)
         {
@@ -198,6 +183,7 @@ public class DriverController extends OpMode{
             twist = 0;
         }*/
 
+        //rotate turret
         if (gamepad2.left_trigger > 0)
         {
             robot.setTurretPower(gamepad2.left_trigger);
@@ -210,6 +196,17 @@ public class DriverController extends OpMode{
         {
             robot.setTurretPower(0);
         }
+
+        //aux player wants to auto seek target
+        if (gamepad2.leftBumperWasPressed())
+        {
+           robot.seekTagLeft();
+        }
+        else if (gamepad2.rightBumperWasPressed())
+        {
+            robot.seekTagRight();
+        }
+
         if (gamepad2.dpadLeftWasPressed())
         {
 
@@ -227,6 +224,38 @@ public class DriverController extends OpMode{
         {
             robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_FAR);
         }
+
+        //allow aux player to turn off shooter
+        if (gamepad2.yWasPressed())
+        {
+            robot.shoot(false, 0);
+        }
+
+        //aux player controls intake
+        if (gamepad2.aWasPressed())
+        {
+            intake_on = !intake_on;
+
+            if (intake_on) {
+                robot.intake(1);
+            }
+            else {
+                robot.intake(0);
+            }
+        }
+        if (gamepad2.bWasPressed())
+        {
+            outtake_on = !outtake_on;
+
+            if (outtake_on) {
+                robot.intake(-1);
+            }
+            else {
+                robot.intake(0);
+            }
+        }
+
+
         /*
          * If we had a gyro and wanted to do field-oriented control, here
          * is where we would implement it.
