@@ -35,7 +35,7 @@ public class QualAuto extends OpMode {
     @Override
     public void loop() {
 
-        if (runtime.seconds() > 2)
+        if (runtime.seconds() > 1)
         {
            r.DriveTrain().stop();
         }
