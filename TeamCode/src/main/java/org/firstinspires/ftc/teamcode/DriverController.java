@@ -50,6 +50,8 @@ public class DriverController extends OpMode{
         // Define and Initialize Motors
         robot.init(hardwareMap);
 
+
+
        // endgameControl = new EndgameController();
         //endgameControl.init(hardwareMap, telemetry);
     }
@@ -89,8 +91,8 @@ public class DriverController extends OpMode{
         double strafe = gamepad1.left_stick_x;
         double twist  = -gamepad1.right_stick_x;
 
-       boolean strafe_left = gamepad1.left_bumper;
-       boolean strafe_right = gamepad1.right_bumper;
+        boolean strafe_left = gamepad1.left_bumper;
+        boolean strafe_right = gamepad1.right_bumper;
         //boolean strafe_left = gamepad1.right_stick_x < 0;
         //boolean strafe_right = gamepad1.right_stick_x > 0;
 
@@ -198,14 +200,14 @@ public class DriverController extends OpMode{
         }
 
         //aux player wants to auto seek target
-        if (gamepad2.leftBumperWasPressed())
+        /*if (gamepad2.leftBumperWasPressed())
         {
            robot.seekTagLeft();
         }
         else if (gamepad2.rightBumperWasPressed())
         {
             robot.seekTagRight();
-        }
+        }*/
 
         if (gamepad2.dpadLeftWasPressed())
         {

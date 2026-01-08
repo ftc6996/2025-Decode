@@ -33,8 +33,8 @@ public interface Constants {
         static final int kLAUNCHER_TARGET_VELOCITY_CLOSE = 400; //1125;
         static final int kLAUNCHER_TARGET_VELOCITY_FAR = 800;
         static final double kFEED_TIME_SECONDS = 1;
-        static final double kFEED_OPEN_POS = .1;
-        static final double kFEED_CLOSE_POS = .6;
+        static final double kFEED_OPEN_POS = 0;
+        static final double kFEED_CLOSE_POS = 0.45;
         static final double kAUTO_TURN_SPEED = .2;
         //bore through encoder
         static final double kENCODER_CPR = 8192.0;

@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.mechanisms.Launcher;
 @TeleOp(name="TestTurret", group="TEST")
 //@Disabled
 public class TestTurret extends OpMode {
-
+    double position = 0;
     Launcher launcher;
     Blinky blinky;
 
@@ -111,6 +111,15 @@ public class TestTurret extends OpMode {
             telemetry.addData("Hood Position","1");
         }
 
+        if (gamepad1.dpadUpWasPressed())
+        {
+            position += 0.05;
+        }else if (gamepad1.dpadDownWasPressed())
+        {
+            position -= 0.05;
+        }
+        launcher.turret_feeder_servo.setPosition(position);
+        telemetry.addData("kicker position", position);
 
         if (alliance == kALLIANCE_RED)
             telemetry.addData("Alliance", "kALLIANCE_RED");
