@@ -19,6 +19,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -31,6 +32,9 @@ import org.firstinspires.ftc.teamcode.mechanisms.MecanumDrive;
 
 public class EndgameController {
 
+    RevBlinkinLedDriver blinkinLedDriver;
+    RevBlinkinLedDriver.BlinkinPattern pattern;
+
     private boolean backSensorInstall = false;
     private ColorDetection leftColorSensor;
     private ColorDetection rightColorSensor;
@@ -42,12 +46,19 @@ public class EndgameController {
     private boolean rightDetected = false;
     public ColorDetection.colorType ALLIANCE_COLOR = ColorDetection.colorType.COLOR_BLUE;
 
+
+    public enum endgameCommands {
+        START,
+        CANCEL,
+    }
+
     public enum robotStates {
         IDLE_STATE,
         INIT_STATE,
         LOCATE_BASE_ZONE_STATE,
         ENTER_BASE_ZONE_STATE,
-        PARK_STATE
+        PARK_STATE,
+        CANCEL_STATE
     }
 
     robotStates robotState = robotStates.IDLE_STATE;
@@ -97,13 +108,17 @@ public class EndgameController {
     //call it periodically
     //return true when endgame control started/in progress
     //return false when endgame control idle
-    public boolean processUpdate(MecanumDrive drive, boolean startProcess) {
+    public boolean processUpdate(MecanumDrive drive, endgameCommands command) {
 
         boolean returnValue = true;
 
+        if (command == endgameCommands.CANCEL) {
+            robotState = robotStates.CANCEL_STATE;
+        }
+
         switch (robotState) {
             case IDLE_STATE:
-                if (startProcess) {
+                if (command == endgameCommands.START) {
                     robotState = robotStates.INIT_STATE;
                 } else {
                     returnValue = false;
@@ -134,6 +149,7 @@ public class EndgameController {
 
                 // When both sensors have detected the color
                 if ( leftDetected  && rightDetected) {
+                    blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_RED);
                     robotState = robotStates.ENTER_BASE_ZONE_STATE;
                 }
                 break;
@@ -155,15 +171,26 @@ public class EndgameController {
                     if (backColorSensor.findColor(ALLIANCE_COLOR)) {
                         // Stop all motion
                         drive.stop();
+                        blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.LAWN_GREEN);
                         robotState = robotStates.IDLE_STATE;
+                    } else {
+                        blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_RED);
                     }
+
                 } else {
-                    if (enterParkTimer.seconds() > 1) {
+                    if (enterParkTimer.seconds() > 3) {
                         // Stop all motion
                         drive.stop();
+                        blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.LAWN_GREEN);
                         robotState = robotStates.IDLE_STATE;
                     }
                 }
+                break;
+
+            case CANCEL_STATE:
+                drive.stop();
+                robotState = robotStates.IDLE_STATE;
+                returnValue = false;
                 break;
         }
         return returnValue;
