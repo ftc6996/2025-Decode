@@ -258,7 +258,7 @@ public class DriverController extends OpMode{
         {
             intake_on = !intake_on;
 
-            if (intake_on) {
+            if (intake_on){
                 robot.intake(1);
             }
             else {
