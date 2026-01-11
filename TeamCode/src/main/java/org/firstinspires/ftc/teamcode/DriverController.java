@@ -29,7 +29,7 @@ public class DriverController extends OpMode{
     public Robot robot = new Robot();
     public double current_speed = .5;
 
-    //private EndgameController endgameControl;
+    private EndgameController endgameControl;
     
 
     public int driver_mode = DRIVER_MODE_ROBOT;
@@ -52,8 +52,8 @@ public class DriverController extends OpMode{
 
 
 
-       // endgameControl = new EndgameController();
-        //endgameControl.init(hardwareMap, telemetry);
+        endgameControl = new EndgameController();
+        endgameControl.init(hardwareMap, telemetry);
     }
     
     /*
@@ -79,7 +79,6 @@ public class DriverController extends OpMode{
      */
     @Override
     public void loop() {
-        boolean endgameStart = false;
 
         robot.update();
         robot.process(runtime);
@@ -287,14 +286,17 @@ public class DriverController extends OpMode{
             drive = -new_drive;
             strafe = -new_strafe;
         }
-/*
-        if (gamepad1.bWasPressed()) {
-            endgameStart = true;
-        } else {
-            endgameStart = false;
-        }
 
- */
+        EndgameController.commands endgameCommand;
+        if (gamepad1.bWasPressed()) {
+            if (endgameControl.getRobotState() == EndgameController.robotStates.IDLE_STATE) {
+                endgameCommand = EndgameController.commands.START;
+            } else {
+                endgameCommand = EndgameController.commands.ABORT;
+            }
+        } else {
+            endgameCommand = EndgameController.commands.NONE;
+        }
 /*
         // If  is being pressed, AND we have found the desired target, Drive to target Automatically .
         if (strafe_left && targetFound) {
@@ -313,15 +315,17 @@ public class DriverController extends OpMode{
         }
 
  */
-        robot.move(drive, strafe, twist);
+        //to enable/disable this feature update the flag in Features.java
+        if (Features.FEATURE_ENDGAME_CONTROLLER_ENABLED) {
+            if (!endgameControl.processUpdate(robot.DriveTrain(), endgameCommand)) {
+                robot.move(drive, strafe, twist);
+            }
 
-        /*
-        if (!endgameControl.processUpdate(robot.DriveTrain(), endgameStart)) {
+            endgameControl.showData();
+        } else {
             robot.move(drive, strafe, twist);
         }
 
-        endgameControl.showData();
-*/
         robot.processTelemetry(telemetry);
         telemetry.addData("Speed%: ", current_speed);
         telemetry.addData("heading (degrees)", heading_deg);
