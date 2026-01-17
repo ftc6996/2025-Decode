@@ -42,6 +42,8 @@ public class DriverController extends OpMode{
     private boolean intake_on = false;
     private boolean outtake_on = false;
     private int alliance = kALLIANCE_RED;
+    private int LaunchVelocityChanger = kLAUNCHER_TARGET_VELOCITY_FAR;
+
       /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -167,7 +169,17 @@ public class DriverController extends OpMode{
         {
             strafe = -current_speed;
         }
-
+        if (gamepad1.aWasPressed())
+        {
+            if (robot.getKickerState() == Launcher.KickingState.UP)
+            {
+                robot.setKickerDown();
+            }
+            else if (robot.getKickerState() == Launcher.KickingState.DOWN)
+            {
+                robot.setKickerUp();
+            }
+        }
 
 
         /*if (gamepad1.ri > 0)
@@ -208,6 +220,14 @@ public class DriverController extends OpMode{
             robot.seekTagRight();
         }*/
 
+        if (gamepad2.dpadUpWasPressed())
+        {
+            LaunchVelocityChanger += 50;
+        }else if (gamepad2.dpadDownWasPressed())
+        {
+            LaunchVelocityChanger -= 50;
+        }
+
         if (gamepad2.dpadLeftWasPressed())
         {
 
@@ -223,7 +243,7 @@ public class DriverController extends OpMode{
         }
         if (gamepad2.leftBumperWasPressed())
         {
-            robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_FAR);
+            robot.shoot(true, LaunchVelocityChanger);
         }
 
         //allow aux player to turn off shooter
@@ -237,7 +257,7 @@ public class DriverController extends OpMode{
         {
             intake_on = !intake_on;
 
-            if (intake_on) {
+            if (intake_on){
                 robot.intake(1);
             }
             else {
@@ -255,7 +275,6 @@ public class DriverController extends OpMode{
                 robot.intake(0);
             }
         }
-
 
         /*
          * If we had a gyro and wanted to do field-oriented control, here

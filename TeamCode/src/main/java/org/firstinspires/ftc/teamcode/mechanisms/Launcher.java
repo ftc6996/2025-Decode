@@ -61,10 +61,16 @@ public class Launcher {
         STOP
     }
     public TurningState turningState;
+    public enum KickingState {
+        DOWN,
+        UP
+    }
+    public KickingState kickingState;
     public Launcher ()
     {
         turningState = TurningState.IDLE;
         launchState = LaunchState.IDLE;
+        kickingState = KickingState.DOWN;
     }
 
     public void init(HardwareMap hardwareMap)
@@ -203,10 +209,20 @@ public class Launcher {
                 if (feederTimer.seconds() > kFEED_TIME_SECONDS) {
                     launchState = LaunchState.IDLE;
                     turret_feeder_servo.setPosition(kFEED_OPEN_POS);
-                    target_velocity = 0;
-                    turret_flywheel_motor.setVelocity(target_velocity);
+                    //target_velocity = 0;
+                    //turret_flywheel_motor.setVelocity(target_velocity);
                     shotRequested = false;
                 }
+                break;
+        }
+        switch (kickingState){
+            case DOWN:
+                turret_feeder_servo.setPosition(kFEED_OPEN_POS);
+                break;
+            case UP:
+                turret_feeder_servo.setPosition(kFEED_CLOSE_POS);
+                break;
+            default:
                 break;
         }
     }
