@@ -25,31 +25,16 @@ public class Robot {
     ElapsedTime intakeTimer = new ElapsedTime();
 
     public enum IntakeTime {
+        IDLE,
         INTAKEON,
         INTAKEOFF,
         INTAKEONREVERSE
     }
-    public IntakeTime intakeTime;
+    public IntakeTime intakeTime = IntakeTime.IDLE;
 
     public Robot()
     {
-        switch (intakeTime)
-        {
-            case INTAKEON:
-                intake(1);
-                intakeTimer.reset();
-                break;
-            case INTAKEOFF:
-                if(intakeTimer.seconds() >= 1){
-                    intake(0);
-                }
-                break;
-            case INTAKEONREVERSE:
-                intake(-1);
-            default:
-                //nothing
-                break;
-        }
+
     }
     public void init(HardwareMap hardwareMap) {
 
@@ -84,6 +69,27 @@ public class Robot {
     {
         blinky.process(current);
         launcher.process();
+        switch (intakeTime)
+        {
+            case IDLE:
+            {
+                break;
+            }
+            case INTAKEON:
+                intake(1);
+                intakeTimer.reset();
+                break;
+            case INTAKEOFF:
+                if(intakeTimer.seconds() >= 1){
+                    intake(0);
+                }
+                break;
+            case INTAKEONREVERSE:
+                intake(-1);
+            default:
+                //nothing
+                break;
+        }
     }
 
     public void changeSpeed(double speed)
