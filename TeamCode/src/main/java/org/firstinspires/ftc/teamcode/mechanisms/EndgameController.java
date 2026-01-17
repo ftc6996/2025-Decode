@@ -39,12 +39,20 @@ public class EndgameController {
     private boolean rightDetected = false;
     public ColorDetection.colorType ALLIANCE_COLOR = ColorDetection.colorType.COLOR_BLUE;
 
+
+    public enum commands{
+        NONE,
+        START,
+        ABORT
+    }
+
     public enum robotStates {
         IDLE_STATE,
         INIT_STATE,
         LOCATE_BASE_ZONE_STATE,
         ENTER_BASE_ZONE_STATE,
-        PARK_STATE
+        PARK_STATE,
+        ABORT_STATE
     }
 
     robotStates robotState = robotStates.IDLE_STATE;
@@ -91,16 +99,24 @@ public class EndgameController {
 
 
 
+    public robotStates getRobotState() {
+        return robotState;
+    }
+
     //call it periodically
     //return true when endgame control started/in progress
     //return false when endgame control idle
-    public boolean processUpdate(MecanumDrive drive, boolean startProcess) {
+    public boolean processUpdate(MecanumDrive drive, commands command) {
 
         boolean returnValue = true;
 
+        if (command == commands.ABORT) {
+            robotState = robotStates.ABORT_STATE;
+        }
+
         switch (robotState) {
             case IDLE_STATE:
-                if (startProcess) {
+                if (command == commands.START) {
                     robotState = robotStates.INIT_STATE;
                 } else {
                     returnValue = false;
@@ -161,6 +177,13 @@ public class EndgameController {
                         robotState = robotStates.IDLE_STATE;
                     }
                 }
+                break;
+
+            case ABORT_STATE:
+                drive.stop();
+                robotState = robotStates.IDLE_STATE;
+                returnValue = false;
+
                 break;
         }
         return returnValue;

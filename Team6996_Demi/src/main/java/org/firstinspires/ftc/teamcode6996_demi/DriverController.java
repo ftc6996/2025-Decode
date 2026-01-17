@@ -13,6 +13,8 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.Exposur
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode6996_demi.mechanisms.MecanumDrive;
+import org.firstinspires.ftc.teamcode6996_demi.mechanisms.twoWheelDrive;
+import org.firstinspires.ftc.teamcode6996_demi.endgameController;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -29,7 +31,11 @@ import com.qualcomm.robotcore.util.Range;
 @TeleOp(name="DriverController", group="TeleOp")
 public class DriverController extends OpMode{
 
-    private MecanumDrive robot;
+    //    private MecanumDrive robot;
+
+    private twoWheelDrive robot;
+
+    private  endgameController endgameControl;
     // Adjust these numbers to suit your robot.
     final double DESIRED_DISTANCE = 12.0; //  this is how close the camera should get to the target (inches)
 
@@ -61,6 +67,9 @@ public class DriverController extends OpMode{
     public String driver_mode_string = "Robot centric";
     public Gamepad saved_gamepad1 = new Gamepad();
     public Gamepad saved_gamepad2 = new Gamepad();
+
+    boolean lastRightTriggerPressed = false;
+    boolean rightTriggerPressed = false;
     
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -79,12 +88,17 @@ public class DriverController extends OpMode{
     @Override
     public void init() {
         // Define and Initialize Motors
-        robot = new MecanumDrive();
+//        robot = new MecanumDrive();
+//        robot.init(hardwareMap);
+
+        robot = new twoWheelDrive();
         robot.init(hardwareMap);
 
+        endgameControl = new endgameController();
+        endgameControl.init(hardwareMap, telemetry);
         initAprilTag();
     }
-    
+
     /*
      * Code to run REPEATEDLY after the driver hits INIT, but before they hit START
      */
@@ -117,6 +131,8 @@ public class DriverController extends OpMode{
 
         boolean strafe_left = gamepad1.left_bumper;
         boolean strafe_right = gamepad1.right_bumper;
+
+        boolean endgameStart = false;
 
         lookingForTag();
 
@@ -181,6 +197,25 @@ public class DriverController extends OpMode{
         {
            twist = -.25;
         }
+
+        rightTriggerPressed = gamepad1.right_trigger > 0.5;
+
+        if (rightTriggerPressed && !lastRightTriggerPressed) {
+            endgameStart = true;
+        }
+
+        lastRightTriggerPressed = rightTriggerPressed;
+
+        if (gamepad1.dpad_up && gamepad1.dpadUpWasPressed()) {
+            endgameControl.adjustDriveSpeed(0.1);
+        } else if (gamepad1.dpad_down && gamepad1.dpadDownWasPressed()) {
+            endgameControl.adjustDriveSpeed(-0.1);
+        }
+
+        if (gamepad1.y && gamepad1.yWasPressed()) {
+            endgameControl.switchAllianceColor();
+        }
+
 /*
         if (strafe_left)
         {
@@ -236,7 +271,11 @@ public class DriverController extends OpMode{
 
             telemetry.addData("Auto","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, twist);
         }
-        robot.move(drive, strafe, twist);
+        if (!endgameControl.processUpdate(robot, endgameStart)) {
+            robot.move(drive, strafe, twist);
+        }
+
+        endgameControl.showData();
 
         telemetry.addData("Speed%: ", current_speed);
         telemetry.addData("heading (degrees)", heading_deg);
@@ -249,7 +288,7 @@ public class DriverController extends OpMode{
         telemetry.addData("RF", target[1]);
         telemetry.addData("LB", target[2]);
         telemetry.addData("RB", target[3]);
-        telemetry.update();
+        telemetry.addData("flag", robot.getFlag());
         telemetry.update();
         
         //save all of the gamepad 
