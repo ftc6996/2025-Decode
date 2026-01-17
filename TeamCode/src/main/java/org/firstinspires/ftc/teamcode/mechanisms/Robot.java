@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.mechanisms;
 
 import static org.firstinspires.ftc.teamcode.Constants.*;
 
-import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -11,9 +10,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.Constants;
+
 public class Robot {
 
     private MecanumDrive mecanumDrive;
@@ -25,8 +22,34 @@ public class Robot {
 
     private int alliance = kNOT_SET;
 
+    ElapsedTime intakeTimer = new ElapsedTime();
+
+    public enum IntakeTime {
+        INTAKEON,
+        INTAKEOFF,
+        INTAKEONREVERSE
+    }
+    public IntakeTime intakeTime;
+
     public Robot()
     {
+        switch (intakeTime)
+        {
+            case INTAKEON:
+                intake(1);
+                intakeTimer.reset();
+                break;
+            case INTAKEOFF:
+                if(intakeTimer.seconds() >= 1){
+                    intake(0);
+                }
+                break;
+            case INTAKEONREVERSE:
+                intake(-1);
+            default:
+                //nothing
+                break;
+        }
     }
     public void init(HardwareMap hardwareMap) {
 
@@ -36,7 +59,7 @@ public class Robot {
         mecanumDrive.init(hardwareMap);
 
         intake_motor = hardwareMap.get(DcMotor.class, "intake_motor");
-        intake_motor.setDirection(DcMotor.Direction.FORWARD);
+        intake_motor.setDirection(DcMotor.Direction.REVERSE);
         intake_motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         intake_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -140,6 +163,18 @@ public class Robot {
     public void shoot(boolean shotRequested, int velocity)
     {
         launcher.shoot(shotRequested, velocity);
+    }
+    public void setKickerDown()
+    {
+        launcher.kickingState = launcher.kickingState.DOWN;
+    }
+    public void setKickerUp()
+    {
+        launcher.kickingState = launcher.kickingState.UP;
+    }
+    public Launcher.KickingState getKickerState()
+    {
+        return launcher.kickingState;
     }
     public void getAprilTag()
     {

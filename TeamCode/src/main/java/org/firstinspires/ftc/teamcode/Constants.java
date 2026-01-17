@@ -35,7 +35,7 @@ public interface Constants {
         static final double kFEED_TIME_SECONDS = 1;
         static final double kFEED_OPEN_POS = 0;
         static final double kFEED_CLOSE_POS = 0.45;
-        static final double kAUTO_TURN_SPEED = .2;
+        static final double kAUTO_TURN_SPEED = 1;
         //bore through encoder
         static final double kENCODER_CPR = 8192.0;
         static final double kDEGREES_PER_REVOLUTION = 360.0;

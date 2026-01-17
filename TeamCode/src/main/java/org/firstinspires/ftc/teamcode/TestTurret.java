@@ -4,6 +4,8 @@ import static org.firstinspires.ftc.teamcode.Constants.Game.*;
 import static org.firstinspires.ftc.teamcode.Constants.Launcher.kHOOD_MAX_POS;
 import static org.firstinspires.ftc.teamcode.Constants.Launcher.kHOOD_MIN_POS;
 import static org.firstinspires.ftc.teamcode.Constants.*;
+import static org.firstinspires.ftc.teamcode.Constants.Launcher.kLAUNCHER_TARGET_VELOCITY_CLOSE;
+import static org.firstinspires.ftc.teamcode.Constants.Launcher.kLAUNCHER_TARGET_VELOCITY_FAR;
 
 //import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -13,6 +15,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.mechanisms.Blinky;
 import org.firstinspires.ftc.teamcode.mechanisms.Launcher;
+import org.firstinspires.ftc.teamcode.mechanisms.Robot;
 
 @TeleOp(name="TestTurret", group="TEST")
 //@Disabled
@@ -20,6 +23,7 @@ public class TestTurret extends OpMode {
     double position = 0;
     Launcher launcher;
     Blinky blinky;
+    Robot robot;
 
     private int alliance = kALLIANCE_RED;
     @Override
@@ -32,6 +36,8 @@ public class TestTurret extends OpMode {
         blinky = new Blinky();
         blinky.init(hardwareMap);
         blinky.setUnknownAlliance();
+
+        robot = new Robot();
     }
 
     @Override
@@ -67,6 +73,7 @@ public class TestTurret extends OpMode {
     public void loop() {
 
         launcher.process();
+        robot.update();
         if (launcher.isTargetFound)
         {
             blinky.setInRange();
@@ -118,6 +125,16 @@ public class TestTurret extends OpMode {
         {
             position -= 0.05;
         }
+
+        if (gamepad2.rightBumperWasPressed())
+        {
+            robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_CLOSE);
+        }
+        if (gamepad2.leftBumperWasPressed())
+        {
+            robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_FAR);
+        }
+
         launcher.turret_feeder_servo.setPosition(position);
         telemetry.addData("kicker position", position);
 
