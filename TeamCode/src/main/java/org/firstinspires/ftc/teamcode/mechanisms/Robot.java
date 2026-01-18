@@ -5,11 +5,13 @@ import static org.firstinspires.ftc.teamcode.Constants.*;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Robot {
 
@@ -17,7 +19,7 @@ public class Robot {
     private DcMotor intake_motor;
     private Blinky blinky;
     private Servo rgb_light;
-    private Launcher launcher;
+    public Launcher launcher;
     private CRServo servo0, servo1, servo2;
 
     private int alliance = kNOT_SET;
@@ -115,7 +117,7 @@ public class Robot {
         intake_motor.setPower(power);
         servo0.setPower(power);
         servo1.setPower(-power);
-        servo2.setPower(-power);
+        //servo2.setPower(-power);
     }
 
     public void seekTagLeft()
@@ -191,6 +193,22 @@ public class Robot {
         telemetry.addData("Launch State: ", launcher.launchState);
         telemetry.addData("Launch Target Velocity:", launcher.getTargetVelocity());
         telemetry.addData("Launch Current Velocity:", launcher.getFlyWheelVelocity());
+
+        telemetry.addLine("-----------------------------------");
+        telemetry.addData("Hood Pos",launcher.getHoodPositon());
+        telemetry.addData("Left Mag",launcher.isLeftSensorTriggered());
+        telemetry.addData("Right Mag",launcher.isRightSensorTriggered());
+        telemetry.addData("Launch Pos",launcher.getPositon());
+        telemetry.addLine("-----------------------------------");
+        telemetry.addData("Pipeline",launcher.limeLight.getPipeline());
+        telemetry.addData("turret state",launcher.turningState);
+
+        telemetry.addData("Target Found",launcher.isTargetFound);
+        if (launcher.isTargetFound) {
+            telemetry.addData("ID seen", launcher.limeLight.getTagID());
+            telemetry.addData("Distance", launcher.limeLight.getTagDistance());
+            telemetry.addData("Pose", launcher.limeLight.tagPose.getPosition().toUnit(DistanceUnit.INCH).toString());
+        }
         /*
         telemetry.addData("Speed%: ", current_speed);
         telemetry.addData("heading (degrees)", heading_deg);

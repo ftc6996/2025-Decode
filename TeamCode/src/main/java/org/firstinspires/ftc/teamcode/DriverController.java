@@ -2,8 +2,14 @@ package org.firstinspires.ftc.teamcode;
 //gamepad1.back    == robot vs field centric
 //gamepad1.options == reset heading
 import static org.firstinspires.ftc.teamcode.Constants.Drive.*;
+import static org.firstinspires.ftc.teamcode.Constants.Game.kPIPELINE_ALLIANCE_BLUE;
+import static org.firstinspires.ftc.teamcode.Constants.Game.kPIPELINE_ALLIANCE_RED;
+import static org.firstinspires.ftc.teamcode.Constants.Game.kTAG_GOAL_BLUE;
+import static org.firstinspires.ftc.teamcode.Constants.Game.kTAG_GOAL_RED;
 import static org.firstinspires.ftc.teamcode.Constants.Launcher.*;
+import static org.firstinspires.ftc.teamcode.Constants.kALLIANCE_BLUE;
 import static org.firstinspires.ftc.teamcode.Constants.kALLIANCE_RED;
+import static org.firstinspires.ftc.teamcode.Constants.kNOT_SET;
 
 
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -41,7 +47,7 @@ public class DriverController extends OpMode{
     private boolean targetFound = false;
     private boolean intake_on = false;
     private boolean outtake_on = false;
-    private int alliance = kALLIANCE_RED;
+    private int alliance = kNOT_SET;
     private int LaunchVelocityChanger = kLAUNCHER_TARGET_VELOCITY_FAR;
 
       /*
@@ -63,7 +69,27 @@ public class DriverController extends OpMode{
      */
     @Override
     public void init_loop() {
-        telemetry.addData("Version", "1");
+        if (gamepad1.bWasPressed())
+        {
+            alliance = kALLIANCE_RED;
+            robot.launcher.limeLight.setPipeline(kPIPELINE_ALLIANCE_RED);
+            robot.launcher.target_tag = kTAG_GOAL_RED;
+        }
+        if (gamepad1.xWasPressed())
+        {
+            alliance = kALLIANCE_BLUE;
+            robot.launcher.limeLight.setPipeline(kPIPELINE_ALLIANCE_BLUE);
+            robot.launcher.target_tag = kTAG_GOAL_BLUE;
+        }
+
+        if (alliance == kALLIANCE_RED)
+            telemetry.addData("Alliance", "kALLIANCE_RED");
+        else if (alliance == kALLIANCE_BLUE)
+            telemetry.addData("Alliance", "kALLIANCE_BLUE");
+        else
+            telemetry.addData("Alliance", "kNOT_SET");
+
+        telemetry.addData("Version", "4");
         telemetry.update();
     }
 
@@ -131,6 +157,10 @@ public class DriverController extends OpMode{
                 driver_mode = DRIVER_MODE_ROBOT;
                 driver_mode_string = "Robot centric";
             }
+        }
+
+        if (gamepad2.backWasPressed()){
+            robot.launcher.rapidFire = true;
         }
 
         if (gamepad1.dpadUpWasPressed())
@@ -340,7 +370,7 @@ public class DriverController extends OpMode{
                 robot.move(drive, strafe, twist);
             }
 
-            endgameControl.showData();
+            //endgameControl.showData();
         } else {
             robot.move(drive, strafe, twist);
         }

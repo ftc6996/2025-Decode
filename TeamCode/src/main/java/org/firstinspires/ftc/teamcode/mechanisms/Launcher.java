@@ -27,6 +27,9 @@ public class Launcher {
     private Servo hood_servo;
     public Servo turret_feeder_servo;
 
+    private DcMotor intake_motor;
+    private CRServo servo0, servo1, servo2;
+
     private CRServo turret_intake_servo;
     private CRServo turret_flywheel_servo;
     private CRServo turret_servo_left;
@@ -44,6 +47,7 @@ public class Launcher {
     public int target_tag = kTAG_ANY;
     public boolean isTargetFound = false;
     private boolean shotRequested = false;
+    public boolean rapidFire = false;
 
     public enum LaunchState {
         IDLE,
@@ -75,6 +79,15 @@ public class Launcher {
 
     public void init(HardwareMap hardwareMap)
     {
+        intake_motor = hardwareMap.get(DcMotor.class, "intake_motor");
+        intake_motor.setDirection(DcMotor.Direction.REVERSE);
+        intake_motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        intake_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        servo0 = hardwareMap.get(CRServo.class, "intake_servo0");
+        servo1 = hardwareMap.get(CRServo.class, "intake_servo1");
+        servo2 = hardwareMap.get(CRServo.class, "intake_servo2");
+
         hood_servo = hardwareMap.get(Servo.class, "turret_hood_servo");
 
         turret_feeder_servo = hardwareMap.get(Servo.class, "turret_feeder_servo");
@@ -87,6 +100,8 @@ public class Launcher {
 
         turret_encoder = hardwareMap.get(DcMotor.class, "turret_encoder");
         turret_flywheel_motor = hardwareMap.get(DcMotorEx.class, "turret_flywheel_motor");
+        turret_flywheel_motor.setDirection(DcMotorSimple.Direction.REVERSE);
+        turret_flywheel_motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         turret_left_limit_sensor = hardwareMap.get(TouchSensor.class, "turret_left_limit_sensor");
         turret_right_limit_sensor = hardwareMap.get(TouchSensor.class, "turret_right_limit_sensor");
@@ -191,30 +206,58 @@ public class Launcher {
                 {
                     hood_servo.setPosition(kHOOD_MIN_POS);
                 }
-                double current_velocity = Math.abs(turret_flywheel_motor.getVelocity());
-                if (current_velocity > (target_velocity * .95)) {//|| current_velocity < (target_velocity * 1.05)
+                double current_velocity = getFlyWheelVelocity(); //Math.abs(turret_flywheel_motor.getVelocity());
+                if (current_velocity > (target_velocity * 1.05)){
+                    turret_flywheel_motor.setVelocity(target_velocity * 0.95);
+                }else if (current_velocity > (target_velocity * 1.00)) {//|| current_velocity < (target_velocity * 1.05)
                     launchState = LaunchState.LAUNCH;
-                }else if (current_velocity > (target_velocity * 1.05)){
-                    target_velocity = 0;
-                    turret_flywheel_motor.setPower(0);
-                    turret_flywheel_motor.setVelocity(target_velocity);
                 }
                 break;
             case LAUNCH:
-                turret_feeder_servo.setPosition(kFEED_CLOSE_POS);
+                //turret_feeder_servo.setPosition(kFEED_OPEN_POS);
                 feederTimer.reset();
+                if (!rapidFire) {
+                    intake_motor.setPower(0);
+                    servo0.setPower(0);
+                    servo1.setPower(0);
+                    servo2.setPower(-1);
+                    turret_feeder_servo.setPosition(kFEED_CLOSE_POS);
+                }else{
+                    intake_motor.setPower(0.8);
+                    servo0.setPower(0.8);
+                    servo1.setPower(-0.8);
+                    servo2.setPower(-0.8);
+                }
                 launchState = LaunchState.LAUNCHING;
                 break;
+                //speed 1200, hood 5, passthrough 0.8, distance 3020.5mm, rapidFire.
             case LAUNCHING:
-                if (feederTimer.seconds() > kFEED_TIME_SECONDS) {
-                    launchState = LaunchState.IDLE;
-                    turret_feeder_servo.setPosition(kFEED_OPEN_POS);
-                    //target_velocity = 0;
-                    //turret_flywheel_motor.setVelocity(target_velocity);
-                    shotRequested = false;
+                if(!rapidFire) {
+                    if (feederTimer.seconds() > kFEED_TIME_SECONDS) {
+                        launchState = LaunchState.IDLE;
+                        turret_feeder_servo.setPosition(kFEED_OPEN_POS);
+                        intake_motor.setPower(0);
+                        servo0.setPower(0);
+                        servo1.setPower(0);
+                        servo2.setPower(0);
+                        shotRequested = false;
+                    }
+                }else{
+                    if (feederTimer.seconds() > 2.5){
+                        launchState = LaunchState.IDLE;
+                        turret_feeder_servo.setPosition(kFEED_OPEN_POS);
+                        intake_motor.setPower(0);
+                        servo0.setPower(0);
+                        servo1.setPower(0);
+                        servo2.setPower(0);
+                        shotRequested = false;
+                        rapidFire = false;
+                    }else if (feederTimer.seconds() > 2) {
+                        turret_feeder_servo.setPosition(kFEED_CLOSE_POS);
+                    }
                 }
                 break;
-        }
+        }/*
         switch (kickingState){
             case DOWN:
                 turret_feeder_servo.setPosition(kFEED_OPEN_POS);
@@ -224,12 +267,12 @@ public class Launcher {
                 break;
             default:
                 break;
-        }
+        }*/
     }
 
     public double getFlyWheelVelocity()
     {
-        return turret_flywheel_motor.getVelocity();
+        return Math.abs(turret_flywheel_motor.getVelocity());
     }
     public double getTargetVelocity()
     {

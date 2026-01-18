@@ -23,7 +23,7 @@ public class TestTurret extends OpMode {
     double position = 0;
     Launcher launcher;
     Blinky blinky;
-    Robot robot;
+
 
     private int alliance = kALLIANCE_RED;
     @Override
@@ -37,7 +37,6 @@ public class TestTurret extends OpMode {
         blinky.init(hardwareMap);
         blinky.setUnknownAlliance();
 
-        robot = new Robot();
     }
 
     @Override
@@ -73,7 +72,7 @@ public class TestTurret extends OpMode {
     public void loop() {
 
         launcher.process();
-        robot.update();
+
         if (launcher.isTargetFound)
         {
             blinky.setInRange();
@@ -118,6 +117,10 @@ public class TestTurret extends OpMode {
             telemetry.addData("Hood Position","1");
         }
 
+        if (gamepad2.backWasPressed()){
+            launcher.rapidFire = true;
+        }
+
         if (gamepad1.dpadUpWasPressed())
         {
             position += 0.05;
@@ -128,15 +131,15 @@ public class TestTurret extends OpMode {
 
         if (gamepad2.rightBumperWasPressed())
         {
-            robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_CLOSE);
+            launcher.shoot(true, kLAUNCHER_TARGET_VELOCITY_CLOSE);
         }
         if (gamepad2.leftBumperWasPressed())
         {
-            robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_FAR);
+            launcher.shoot(true, kLAUNCHER_TARGET_VELOCITY_FAR);
         }
 
-        launcher.turret_feeder_servo.setPosition(position);
-        telemetry.addData("kicker position", position);
+       // launcher.turret_feeder_servo.setPosition(position);
+        //telemetry.addData("kicker position", position);
 
         if (alliance == kALLIANCE_RED)
             telemetry.addData("Alliance", "kALLIANCE_RED");
@@ -150,6 +153,8 @@ public class TestTurret extends OpMode {
         telemetry.addLine("-----------------------------------");
         telemetry.addData("Pipeline",launcher.limeLight.getPipeline());
         telemetry.addData("turret state",launcher.turningState);
+
+        telemetry.addData("rapidFire", launcher.rapidFire);
 
         telemetry.addData("Target Found",launcher.isTargetFound);
         if (launcher.isTargetFound) {
