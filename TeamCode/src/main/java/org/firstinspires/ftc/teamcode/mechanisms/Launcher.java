@@ -283,4 +283,8 @@ public class Launcher {
         shotRequested = startShoot;
         target_velocity = Math.abs(velocity);
     }
+    public boolean isShotRequested()
+    {
+        return shotRequested;
+    }
 }
