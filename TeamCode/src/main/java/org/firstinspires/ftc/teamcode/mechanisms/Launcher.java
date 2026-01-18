@@ -43,7 +43,7 @@ public class Launcher {
     public Limelight3A vision;
     public LimeLight limeLight;
 
-    private int target_velocity;
+    public int target_velocity;
     public int target_tag = kTAG_ANY;
     public boolean isTargetFound = false;
     private boolean shotRequested = false;
@@ -112,6 +112,13 @@ public class Launcher {
         limeLight = new LimeLight(vision);
     }
 
+    public void setIntakeMotor(double power)
+    {
+        intake_motor.setPower(power);
+        servo0.setPower(power);
+        servo1.setPower(-power);
+        servo2.setPower(-power);
+    }
     /// Power > 0 turn left, Power < 0 turn right
     public void setTurretPower(double power)
     {
@@ -223,6 +230,13 @@ public class Launcher {
                     servo2.setPower(-1);
                     turret_feeder_servo.setPosition(kFEED_CLOSE_POS);
                 }else{
+                    current_velocity = getFlyWheelVelocity(); //Math.abs(turret_flywheel_motor.getVelocity());
+                    if (current_velocity > (target_velocity * 1.05)){
+                        turret_flywheel_motor.setVelocity(target_velocity * 0.95);
+                    }else if (current_velocity > (target_velocity * 1.00)) {//|| current_velocity < (target_velocity * 1.05)
+                        launchState = LaunchState.LAUNCH;
+                    }
+
                     intake_motor.setPower(0.8);
                     servo0.setPower(0.8);
                     servo1.setPower(-0.8);

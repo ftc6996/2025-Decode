@@ -5,13 +5,14 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.mechanisms.MecanumDrive;
 import org.firstinspires.ftc.teamcode.mechanisms.Launcher;
+import org.firstinspires.ftc.teamcode.mechanisms.MecanumDrive;
 import org.firstinspires.ftc.teamcode.mechanisms.Robot;
 
-@Autonomous(name = "AutoLaunchAndMoveRed")
-public class AutoLM extends LinearOpMode {
+@Autonomous(name = "AutoShortBlue")
+public class AutoCB extends LinearOpMode {
 
+    /// move forward 20 inches, triple shot at 800rpm hood all way down?
     private ElapsedTime runtime = new ElapsedTime();
 
     private MecanumDrive mecanumDrive;
@@ -26,7 +27,8 @@ public class AutoLM extends LinearOpMode {
     private static final int kBLUE = 0;
     private static final int kRED = 1;
     public int alliance_color = kNOT_SET;
-    public enum AutoState{
+
+    public enum AutoState {
         IDLE,
         SHOOT1,
         SHOOT2,
@@ -35,11 +37,12 @@ public class AutoLM extends LinearOpMode {
         MOVE_TO_SPIKE1,
         STOP;
     }
-    public AutoState autoState = AutoState.IDLE;
+
+    public AutoLMB.AutoState autoState = AutoLMB.AutoState.IDLE;
     boolean isMoving = false;
+
     @Override
     public void runOpMode() {
-        // Hardware map setup
         mecanumDrive = new MecanumDrive();
         mecanumDrive.init(hardwareMap);
 
@@ -47,7 +50,7 @@ public class AutoLM extends LinearOpMode {
         launcher.init(hardwareMap);
 
         telemetry.addData("Status", "Initialized");
-        telemetry.addData("Version", "5");
+        telemetry.addData("Version", "1");
         telemetry.update();
 
         // Wait for the game to start
@@ -57,41 +60,44 @@ public class AutoLM extends LinearOpMode {
         boolean finished = false;
 
 
-
-
         while (opModeIsActive() && !finished) {
             telemetry.addData("autoState", autoState);
             telemetry.addData("finished", finished);
             telemetry.addData("Lancher State", launcher.launchState);
+            telemetry.addData("target v", launcher.getTargetVelocity());
+            telemetry.addData("current v", launcher.getFlyWheelVelocity());
             telemetry.update();
             launcher.process();
+
+
             switch (autoState){
                 case IDLE:
-                    launcher.setFlyWheelVelocity(1150);
-                    if (runtime.seconds()> 3) {
-                        autoState = AutoState.SHOOT1;
+                    launcher.target_velocity = 880;
+                    launcher.setFlyWheelVelocity(880);
+                    if (runtime.seconds()> 14) {
+                        autoState = AutoLMB.AutoState.SHOOT1;
                     }
                     break;
                 case SHOOT1:
                     //start the shooting process
                     launcher.rapidFire = true;
-                    launcher.shoot(true, 1150);
-                    autoState =  AutoState.SHOOT2;
+                    launcher.shoot(true, 880);
+                    autoState =  AutoLMB.AutoState.SHOOT2;
 
                     break;
                 case SHOOT2:
                     if (!launcher.isShotRequested())
                     {
-                        autoState = AutoState.MOVE;
+                        autoState = AutoLMB.AutoState.STOP;
                     }
                     break;
                 case SHOOT3:
                     if (launcher.launchState == Launcher.LaunchState.IDLE) {
-                        launcher.shoot(true, 800);
+                        launcher.shoot(true, 880);
                     }
                     if (!launcher.isShotRequested())
                     {
-                        autoState = AutoState.MOVE;
+                        autoState = AutoLMB.AutoState.MOVE;
                     }
                     break;
                 case MOVE:
@@ -100,10 +106,11 @@ public class AutoLM extends LinearOpMode {
                     {
                         isMoving = true;
 
-                        MoveLeft(.8, 14, 5);
-
-                        autoState = AutoState.MOVE_TO_SPIKE1;
+                        //MoveRight(.8, 28, 5);
+                        sleep(30000);
+                        autoState = AutoLMB.AutoState.STOP;
                         launcher.setIntakeMotor(.8);
+
 
                     }
                     break;
@@ -112,7 +119,7 @@ public class AutoLM extends LinearOpMode {
                     {
                         isMoving = true;
                         MoveForward(.3, 20, 5);
-                        autoState = AutoState.STOP;
+                        autoState = AutoLMB.AutoState.STOP;
                     }
                     break;
                 case STOP:

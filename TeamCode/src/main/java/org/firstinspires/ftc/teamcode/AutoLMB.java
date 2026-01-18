@@ -9,8 +9,8 @@ import org.firstinspires.ftc.teamcode.mechanisms.MecanumDrive;
 import org.firstinspires.ftc.teamcode.mechanisms.Launcher;
 import org.firstinspires.ftc.teamcode.mechanisms.Robot;
 
-@Autonomous(name = "AutoLaunchAndMoveRed")
-public class AutoLM extends LinearOpMode {
+@Autonomous(name = "AutoLaunchAndMoveBlue")
+public class AutoLMB extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -47,7 +47,7 @@ public class AutoLM extends LinearOpMode {
         launcher.init(hardwareMap);
 
         telemetry.addData("Status", "Initialized");
-        telemetry.addData("Version", "5");
+        telemetry.addData("Version", "2");
         telemetry.update();
 
         // Wait for the game to start
@@ -63,11 +63,13 @@ public class AutoLM extends LinearOpMode {
             telemetry.addData("autoState", autoState);
             telemetry.addData("finished", finished);
             telemetry.addData("Lancher State", launcher.launchState);
+            telemetry.addData("target v", launcher.getTargetVelocity());
+            telemetry.addData("current v", launcher.getFlyWheelVelocity());
             telemetry.update();
             launcher.process();
             switch (autoState){
                 case IDLE:
-                    launcher.setFlyWheelVelocity(1150);
+                    launcher.setFlyWheelVelocity(1240);
                     if (runtime.seconds()> 3) {
                         autoState = AutoState.SHOOT1;
                     }
@@ -75,7 +77,7 @@ public class AutoLM extends LinearOpMode {
                 case SHOOT1:
                     //start the shooting process
                     launcher.rapidFire = true;
-                    launcher.shoot(true, 1150);
+                    launcher.shoot(true, 1240);
                     autoState =  AutoState.SHOOT2;
 
                     break;
@@ -100,7 +102,7 @@ public class AutoLM extends LinearOpMode {
                     {
                         isMoving = true;
 
-                        MoveLeft(.8, 14, 5);
+                        MoveRight(.8, 14, 5);
 
                         autoState = AutoState.MOVE_TO_SPIKE1;
                         launcher.setIntakeMotor(.8);

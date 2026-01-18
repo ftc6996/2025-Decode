@@ -16,7 +16,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class Robot {
 
     private MecanumDrive mecanumDrive;
-    private DcMotor intake_motor;
+    public DcMotor intake_motor;
     private Blinky blinky;
     private Servo rgb_light;
     public Launcher launcher;
