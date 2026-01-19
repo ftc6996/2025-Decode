@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
+import static org.firstinspires.ftc.teamcode.Constants.*;
+import static org.firstinspires.ftc.teamcode.Constants.Game.*;
+import static org.firstinspires.ftc.teamcode.Constants.Launcher.*;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -7,6 +11,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.teamcode.mechanisms.Robot;
+
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -31,6 +38,7 @@ public class Auto_DECODE extends OpMode {
   private enum AutonomousState {
     IDLE,
     START,
+    MOVE_TO_LAUNCH,
     LAUNCH,
     WAIT_FOR_LAUNCH,
     MOVE_OUT_OF_ZONE,
@@ -39,7 +47,8 @@ public class Auto_DECODE extends OpMode {
   }
   private AutonomousState autonomousState = AutonomousState.IDLE;
   private boolean isMoving = false;
-
+  private Pose2D currentPos = new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0);
+  private Pose2D targetPos = new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0);
   /*
    * Code to run ONCE when the driver hits INIT
    */
@@ -100,71 +109,109 @@ public class Auto_DECODE extends OpMode {
     robot.update();
     robot.process(runtime);
 
-    if (start_location == START_LOCATION_1) {
+    if (start_location == Location.START_LOCATION_1) {
       runStartLocation1();
-    } else if (start_location == START_LOCATION_2) {
+    } else if (start_location == Location.START_LOCATION_2) {
       runStartLocation2();
     }
 
     telemetry.addData("AutoState", autonomousState);
     //telemetry.addData("Obelisk", targetFoundTag);// targetFound ? desiredTag.id : "NONE");
-    telemetry.addData("LauncherState", robot.launcher.getLaunchState());
-    outputPositions("Current", robot.getAllPositions());
-    outputPositions("Target", robot.getAllTargetPositions());
-    telemetry.addData("positionX", Math.round(robot.getPinpointPosition().getX(DistanceUnit.MM)));
-    telemetry.addData("positionY", Math.round(robot.getPinpointPosition().getY(DistanceUnit.MM)));
-    telemetry.addData("heading", Math.round(robot.getPinpointPosition().getHeading(AngleUnit.DEGREES)));
+    telemetry.addData("LauncherState", robot.launcher.launchState);
+    //outputPositions("Current", robot.DriveTrain().getAllPositions());
+    //outputPositions("Target", robot.DriveTrain().getAllPositions());
+    telemetry.addData("current", Format2D(currentPos));
+    telemetry.addData("target", Format2D(targetPos));
+    telemetry.addData("positionX", Math.round(robot.DriveTrain().getPinpointPosition().getX(DistanceUnit.MM)));
+    telemetry.addData("positionY", Math.round(robot.DriveTrain().getPinpointPosition().getY(DistanceUnit.MM)));
+    telemetry.addData("heading", Math.round(robot.DriveTrain().getPinpointPosition().getHeading(AngleUnit.DEGREES)));
     telemetry.update();
   }
 
+  public String Format2D(Pose2D p)
+  {
+    String output = String.format("x: %.2f, y: %.2f", p.getX(DistanceUnit.INCH), p.getY(DistanceUnit.INCH));
+
+    return output;
+  }
   //Small/Far Zone
   public void runStartLocation1() {
     //shoot
-    switch (autoState) {
+    switch (autonomousState) {
     case START:
       //this is to start the spinup
+      currentPos = robot.DriveTrain().getPinpointPosition();
       robot.launcher.target_velocity = kLAUNCHER_TARGET_VELOCITY_FAR;
       robot.launcher.setFlyWheelVelocity(robot.launcher.target_velocity);
       if (runtime.seconds() > 2) {
-        autoState = AutonomousState.LAUNCH;
+        autonomousState = AutonomousState.MOVE_TO_LAUNCH;
+        targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
+                currentPos.getY(DistanceUnit.INCH) - 12, AngleUnit.DEGREES, 0);
       }
       break;
+      case MOVE_TO_LAUNCH:
+        if (!isMoving) {
+          robot.move(0, -.5, 0);
+          //start moving to X/Y
+          isMoving = true;
+        } else {
+          currentPos = robot.DriveTrain().getPinpointPosition();
+          double dX = Math.abs(currentPos.getX(DistanceUnit.INCH) - targetPos.getX(DistanceUnit.INCH));
+          double dY = Math.abs(currentPos.getY(DistanceUnit.INCH) - targetPos.getY(DistanceUnit.INCH));
+
+          if ((dX < 1) && (dY < 1))
+          {
+            robot.DriveTrain().stop();
+            autonomousState = AutonomousState.LAUNCH;
+            isMoving = false;
+          }
+          //we are moving, check to see if we get to destination
+        }
+        break;
     case LAUNCH:
       //start the shooting process
-      launcher.rapidFire = true;
+      robot.launcher.rapidFire = true;
       robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_FAR);
-      autoState = AutonomousState.WAIT_FOR_LAUNCH;
+      autonomousState = AutonomousState.WAIT_FOR_LAUNCH;
 
       break;
     case WAIT_FOR_LAUNCH:
       //are we done shooting???
       if (!robot.launcher.isShotRequested()) {
-        autoState = AutonomousState.MOVE_OUT_OF_ZONE;
+        autonomousState = AutonomousState.MOVE_OUT_OF_ZONE;
+        targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
+                currentPos.getY(DistanceUnit.INCH) - 16, AngleUnit.DEGREES, 0);
+
       }
       break;
     case MOVE_OUT_OF_ZONE:
       if (!isMoving) {
-        robot.move(desiredYDistance, desiredXDistance, 0);
+        robot.move(0, -.5, 0);
         //start moving to X/Y
         isMoving = true;
       } else {
-        //we are moving, check to see if we get to destination
-        if (!robot.isAllBusy()) {
-          robot.stop();
-          autoState = AutonomousState.COMPLETE;
-          finished = true;
+        currentPos = robot.DriveTrain().getPinpointPosition();
+          double dX = Math.abs(currentPos.getX(DistanceUnit.INCH) - targetPos.getX(DistanceUnit.INCH));
+          double dY = Math.abs(currentPos.getY(DistanceUnit.INCH) - targetPos.getY(DistanceUnit.INCH));
+
+        if ((dX < 1) && (dY < 1))
+        {
+          robot.DriveTrain().stop();
+          autonomousState = AutonomousState.COMPLETE;
+          isMoving = false;
         }
-      }
+        //we are moving, check to see if we get to destination
+        }
       break;
     case COMPLETE:
-      robot.stop();
+      robot.DriveTrain().stop();
       isMoving = false;
-      finished = true;
+      //finished = true;
       break;
     case STOP:
-      robot.stop();
+      robot.DriveTrain().stop();
       isMoving = false;
-      finished = true;
+      //finished = true;
       break;
     }
   }
@@ -181,7 +228,7 @@ public class Auto_DECODE extends OpMode {
    */
   @Override
   public void stop() {
-    robot.stop();
+    robot.DriveTrain().stop();
   }
 
   public void telemetryChoice() {
@@ -193,9 +240,9 @@ public class Auto_DECODE extends OpMode {
     else
       telemetry.addData("Alliance", "kNOT_SET");
 
-    if (start_location == START_LOCATION_1)
+    if (start_location == Location.START_LOCATION_1)
       telemetry.addData("Start Location", "Small/Far Zone");
-    else if (start_location == START_LOCATION_2)
+    else if (start_location == Location.START_LOCATION_2)
       telemetry.addData("Start Location", "Big/Close Zone");
     else
       telemetry.addData("Start Location", "kNOT_SET");
