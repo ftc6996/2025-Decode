@@ -37,7 +37,6 @@ public class LimeLight {
     {
         return tagLocationX;
     }
-
     public double getTagLocationY()
     {
         return tagLocationY;

@@ -133,7 +133,7 @@ public class Launcher {
     }
     public void setHoodPosition(double pos)
     {
-        pos = Range.clip(pos, kHOOD_MIN_POS, kHOOD_MAX_POS);
+        //pos = Range.clip(pos, kHOOD_MIN_POS, kHOOD_MAX_POS);
         hood_servo.setPosition(pos);
     }
 
@@ -205,20 +205,29 @@ public class Launcher {
                 break;
             case SPIN_UP:
                 turret_flywheel_motor.setVelocity(target_velocity);
+                /*
                 if (target_velocity == kLAUNCHER_TARGET_VELOCITY_FAR)
                 {
                     hood_servo.setPosition(kHOOD_MAX_POS);
                 }
                 else
                 {
-                    hood_servo.setPosition(kHOOD_MIN_POS);
+                   hood_servo.setPosition(kHOOD_MIN_POS);
                 }
-                double current_velocity = getFlyWheelVelocity(); //Math.abs(turret_flywheel_motor.getVelocity());
+                */
+
+                double current_velocity = getFlyWheelVelocity();
+                if (current_velocity > (target_velocity * 1.00)) {
+                    launchState = LaunchState.LAUNCH;
+                }
+                /*
                 if (current_velocity > (target_velocity * 1.05)){
                     turret_flywheel_motor.setVelocity(target_velocity * 0.95);
                 }else if (current_velocity > (target_velocity * 1.00)) {//|| current_velocity < (target_velocity * 1.05)
                     launchState = LaunchState.LAUNCH;
                 }
+                */
+
                 break;
             case LAUNCH:
                 //turret_feeder_servo.setPosition(kFEED_OPEN_POS);
@@ -230,12 +239,6 @@ public class Launcher {
                     servo2.setPower(-1);
                     turret_feeder_servo.setPosition(kFEED_CLOSE_POS);
                 }else{
-                    current_velocity = getFlyWheelVelocity(); //Math.abs(turret_flywheel_motor.getVelocity());
-                    if (current_velocity > (target_velocity * 1.05)){
-                        turret_flywheel_motor.setVelocity(target_velocity * 0.95);
-                    }else if (current_velocity > (target_velocity * 1.00)) {//|| current_velocity < (target_velocity * 1.05)
-                        launchState = LaunchState.LAUNCH;
-                    }
 
                     intake_motor.setPower(0.8);
                     servo0.setPower(0.8);
@@ -257,13 +260,14 @@ public class Launcher {
                         shotRequested = false;
                     }
                 }else{
-                    if (feederTimer.seconds() > 2.5){
+                    turret_flywheel_motor.setVelocity(target_velocity);
+                    if (feederTimer.seconds() > 3){
                         launchState = LaunchState.IDLE;
                         turret_feeder_servo.setPosition(kFEED_OPEN_POS);
-                        intake_motor.setPower(0);
-                        servo0.setPower(0);
-                        servo1.setPower(0);
-                        servo2.setPower(0);
+                        //intake_motor.setPower(0);
+                        //servo0.setPower(0);
+                        //servo1.setPower(0);
+                        //servo2.setPower(0);
                         shotRequested = false;
                         rapidFire = false;
                     }else if (feederTimer.seconds() > 2) {
