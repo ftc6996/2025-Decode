@@ -115,7 +115,7 @@ public class DriverController extends OpMode{
         //  strafe (left-and-right), and 
         //  twist (rotating the whole chassis).
         double drive  = gamepad1.left_stick_y;
-        double strafe = gamepad1.left_stick_x;
+        double strafe = -gamepad1.left_stick_x;
         double twist  = -gamepad1.right_stick_x;
 
         boolean strafe_left = gamepad1.left_bumper;
@@ -211,6 +211,27 @@ public class DriverController extends OpMode{
             }
         }
 
+        if (gamepad2.dpadLeftWasPressed()){
+            //robot.setHoodPosition(robot.getLauncherHoodPosition()+0.1);
+            robot.launcher.setHoodPosition(kHOOD_MAX_POS);
+        }
+        if (gamepad2.dpadRightWasPressed()){
+           // robot.setHoodPosition(robot.getLauncherHoodPosition()-0.1);
+            robot.launcher.setHoodPosition(kHOOD_MIN_POS);
+        }
+
+        /*if(gamepad2.start){
+            if(robot.launcher.limeLight.getPipeline() == alliance){
+                if (Math.abs(robot.launcher.limeLight.getTagLocationY()) > 10){
+                    double temp = robot.launcher.limeLight.getTagLocationX()*0.01;
+                    if (temp > 1){
+                        temp = 1;
+                    }
+                    robot.setTurretPower(-temp);
+
+                }
+            }
+        }*/
 
         /*if (gamepad1.ri > 0)
         {
