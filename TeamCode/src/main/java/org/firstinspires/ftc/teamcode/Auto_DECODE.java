@@ -118,6 +118,8 @@ public class Auto_DECODE extends OpMode {
     telemetry.addData("AutoState", autonomousState);
     //telemetry.addData("Obelisk", targetFoundTag);// targetFound ? desiredTag.id : "NONE");
     telemetry.addData("LauncherState", robot.launcher.launchState);
+    telemetry.addData("Fufiled shots", robot.launcher.numShotsFufiled);
+    telemetry.addData("Requested shots", robot.launcher.numShotsRequested);
     //outputPositions("Current", robot.DriveTrain().getAllPositions());
     //outputPositions("Target", robot.DriveTrain().getAllPositions());
     telemetry.addData("current", Format2D(currentPos));
@@ -141,14 +143,14 @@ public class Auto_DECODE extends OpMode {
     case START:
       //this is to start the spinup
       currentPos = robot.DriveTrain().getPinpointPosition();
-      robot.launcher.target_velocity = kLAUNCHER_TARGET_VELOCITY_FAR;
+      robot.launcher.target_velocity = kLAUNCHER_TARGET_VELOCITY_CLOSE;
       robot.launcher.setFlyWheelVelocity(robot.launcher.target_velocity);
       robot.launcher.setHoodPosition(kHOOD_MAX_POS);
 
       if (runtime.seconds() > 2) {
         if (alliance == kALLIANCE_BLUE) {
           targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
-                  currentPos.getY(DistanceUnit.INCH) - 15, AngleUnit.DEGREES, 0);
+                  currentPos.getY(DistanceUnit.INCH) - 12.5, AngleUnit.DEGREES, 0);
         }
         else {
           targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
@@ -184,7 +186,7 @@ public class Auto_DECODE extends OpMode {
     case LAUNCH:
       //start the shooting process
       robot.launcher.rapidFire = true;
-      robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_CLOSE);
+      robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_FAR, 3);
       autonomousState = AutonomousState.WAIT_FOR_LAUNCH;
 
       break;
@@ -194,7 +196,7 @@ public class Auto_DECODE extends OpMode {
         autonomousState = AutonomousState.MOVE_OUT_OF_ZONE;
         if (alliance == kALLIANCE_BLUE) {
           targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
-                  currentPos.getY(DistanceUnit.INCH) - 16, AngleUnit.DEGREES, 0);
+                  currentPos.getY(DistanceUnit.INCH) - 18.5, AngleUnit.DEGREES, 0);
         }
         else {
           targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
@@ -248,6 +250,7 @@ public class Auto_DECODE extends OpMode {
         currentPos = robot.DriveTrain().getPinpointPosition();
         robot.launcher.target_velocity = kLAUNCHER_TARGET_VELOCITY_CLOSE;
         robot.launcher.setFlyWheelVelocity(robot.launcher.target_velocity);
+        robot.launcher.setHoodPosition(kHOOD_MIN_POS);
         if (runtime.seconds() > 2) {
           if (alliance == kALLIANCE_BLUE) {
             targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
@@ -287,7 +290,7 @@ public class Auto_DECODE extends OpMode {
       case LAUNCH:
         //start the shooting process
         robot.launcher.rapidFire = true;
-        robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_CLOSE);
+        robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_CLOSE, 3);
         autonomousState = AutonomousState.WAIT_FOR_LAUNCH;
         break;
       case WAIT_FOR_LAUNCH:

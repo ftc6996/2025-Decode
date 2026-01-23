@@ -76,8 +76,8 @@ public class AutoLM extends LinearOpMode {
                     break;
                 case SHOOT1:
                     //start the shooting process
-                    launcher.rapidFire = true;
-                    launcher.shoot(true, 1150);
+                    //launcher.rapidFire = true;
+                    launcher.shoot(true, 1150, 3);
                     autoState =  AutoState.SHOOT2;
 
                     break;
@@ -89,7 +89,7 @@ public class AutoLM extends LinearOpMode {
                     break;
                 case SHOOT3:
                     if (launcher.launchState == Launcher.LaunchState.IDLE) {
-                        launcher.shoot(true, 800);
+                        launcher.shoot(true, 800, 1);
                     }
                     if (!launcher.isShotRequested())
                     {
@@ -187,7 +187,7 @@ public class AutoLM extends LinearOpMode {
 
 
 
-        launcher.shoot(true, 800);
+        launcher.shoot(true, 800, 1);
 
         MoveForward(.8, 9, 5);
 

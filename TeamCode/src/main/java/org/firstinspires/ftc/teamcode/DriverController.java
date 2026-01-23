@@ -250,11 +250,11 @@ public class DriverController extends OpMode{
         //rotate turret
         if (gamepad2.left_trigger > 0)
         {
-            robot.setTurretPower(gamepad2.left_trigger);
+            robot.setTurretPower(-gamepad2.left_trigger);
         }
         else if (gamepad2.right_trigger > 0)
         {
-            robot.setTurretPower(-gamepad2.right_trigger);
+            robot.setTurretPower(gamepad2.right_trigger);
         }
         else
         {
@@ -290,17 +290,17 @@ public class DriverController extends OpMode{
 
         if (gamepad2.rightBumperWasPressed())
         {
-            robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_CLOSE);
+            robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_CLOSE, 1);
         }
         if (gamepad2.leftBumperWasPressed())
         {
-            robot.shoot(true, LaunchVelocityChanger);
+            robot.shoot(true, LaunchVelocityChanger, 1);
         }
 
         //allow aux player to turn off shooter
         if (gamepad2.yWasPressed())
         {
-            robot.shoot(false, 0);
+            robot.shoot(false, 0, 0);
         }
 
         //aux player controls intake

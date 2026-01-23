@@ -49,6 +49,9 @@ public class Launcher {
     private boolean shotRequested = false;
     public boolean rapidFire = false;
 
+    public int numShotsRequested = 0;
+    public int numShotsFufiled = 0;
+
     public enum LaunchState {
         IDLE,
         SPIN_UP,
@@ -238,8 +241,8 @@ public class Launcher {
                     servo1.setPower(0);
                     servo2.setPower(-1);
                     turret_feeder_servo.setPosition(kFEED_CLOSE_POS);
+                    numShotsFufiled += 1;
                 }else{
-
                     intake_motor.setPower(0.8);
                     servo0.setPower(0.8);
                     servo1.setPower(-0.8);
@@ -251,13 +254,21 @@ public class Launcher {
             case LAUNCHING:
                 if(!rapidFire) {
                     if (feederTimer.seconds() > kFEED_TIME_SECONDS) {
-                        launchState = LaunchState.IDLE;
-                        turret_feeder_servo.setPosition(kFEED_OPEN_POS);
-                        intake_motor.setPower(0);
-                        servo0.setPower(0);
-                        servo1.setPower(0);
-                        servo2.setPower(0);
-                        shotRequested = false;
+                        //if (numShotsFufiled <= numShotsRequested){
+                        //    launchState = LaunchState.SPIN_UP;
+                        //}else{
+                            turret_feeder_servo.setPosition(kFEED_OPEN_POS);
+                            intake_motor.setPower(0);
+                            servo0.setPower(0);
+                            servo1.setPower(0);
+                            servo2.setPower(0);
+
+                            numShotsFufiled = 0;
+                            numShotsRequested = 0;
+
+                            launchState = LaunchState.IDLE;
+                            shotRequested = false;
+                       // }
                     }
                 }else{
                     turret_flywheel_motor.setVelocity(target_velocity);
@@ -296,8 +307,9 @@ public class Launcher {
     {
         return target_velocity;
     }
-    public void shoot(boolean startShoot, int velocity)
+    public void shoot(boolean startShoot, int velocity, int numShots)
     {
+        numShotsRequested = numShots;
         shotRequested = startShoot;
         target_velocity = Math.abs(velocity);
     }

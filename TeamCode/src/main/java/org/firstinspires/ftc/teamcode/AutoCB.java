@@ -83,7 +83,7 @@ public class AutoCB extends LinearOpMode {
                 case SHOOT1:
                     //start the shooting process
                     launcher.rapidFire = true;
-                    launcher.shoot(true, 880);
+                    launcher.shoot(true, 880, 1);
                     autoState =  AutoLMB.AutoState.SHOOT2;
 
                     break;
@@ -95,7 +95,7 @@ public class AutoCB extends LinearOpMode {
                     break;
                 case SHOOT3:
                     if (launcher.launchState == Launcher.LaunchState.IDLE) {
-                        launcher.shoot(true, 880);
+                        launcher.shoot(true, 880, 1);
                     }
                     if (!launcher.isShotRequested())
                     {
@@ -194,7 +194,7 @@ public class AutoCB extends LinearOpMode {
 
 
 
-        launcher.shoot(true, 800);
+        launcher.shoot(true, 800, 1);
 
         MoveForward(.8, 9, 5);
 

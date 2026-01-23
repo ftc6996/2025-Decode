@@ -131,11 +131,11 @@ public class TestTurret extends OpMode {
 
         if (gamepad2.rightBumperWasPressed())
         {
-            launcher.shoot(true, kLAUNCHER_TARGET_VELOCITY_CLOSE);
+            launcher.shoot(true, kLAUNCHER_TARGET_VELOCITY_CLOSE, 1);
         }
         if (gamepad2.leftBumperWasPressed())
         {
-            launcher.shoot(true, kLAUNCHER_TARGET_VELOCITY_FAR);
+            launcher.shoot(true, kLAUNCHER_TARGET_VELOCITY_FAR, 1);
         }
 
        // launcher.turret_feeder_servo.setPosition(position);

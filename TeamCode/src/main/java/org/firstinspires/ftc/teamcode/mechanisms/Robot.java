@@ -168,9 +168,9 @@ public class Robot {
     {
         return launcher.getHoodPositon();
     }
-    public void shoot(boolean shotRequested, int velocity)
+    public void shoot(boolean shotRequested, int velocity, int numShots)
     {
-        launcher.shoot(shotRequested, velocity);
+        launcher.shoot(shotRequested, velocity, numShots);
     }
     public void setKickerDown()
     {

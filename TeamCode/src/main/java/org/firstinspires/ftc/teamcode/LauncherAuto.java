@@ -41,15 +41,15 @@ public class LauncherAuto extends OpMode{
         robot.move(10,0,0);
         launcher.turningState = launcher.turningState.START_LEFT;
         if(launcher.turningState == launcher.turningState.IDLE) {
-            robot.shoot(true, 1000);
+            robot.shoot(true, 1000, 1);
             if(launcher.launchState == Launcher.LaunchState.IDLE){
                 robot.intakeTime = Robot.IntakeTime.INTAKEON;
                 robot.intakeTime = Robot.IntakeTime.INTAKEOFF;
-                robot.shoot(true, 1000);
+                robot.shoot(true, 1000, 1);
                 if(launcher.launchState == Launcher.LaunchState.IDLE){
                     robot.intakeTime = Robot.IntakeTime.INTAKEON;
                     robot.intakeTime = Robot.IntakeTime.INTAKEOFF;
-                    robot.shoot(true, 1000);
+                    robot.shoot(true, 1000, 1);
                     if(launcher.launchState == Launcher.LaunchState.IDLE){
                         telemetry.addData("auto done?", "YES!");
                     }
