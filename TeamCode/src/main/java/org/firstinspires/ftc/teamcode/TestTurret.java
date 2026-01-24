@@ -6,6 +6,7 @@ import static org.firstinspires.ftc.teamcode.Constants.Launcher.kHOOD_MIN_POS;
 import static org.firstinspires.ftc.teamcode.Constants.*;
 import static org.firstinspires.ftc.teamcode.Constants.Launcher.kLAUNCHER_TARGET_VELOCITY_CLOSE;
 import static org.firstinspires.ftc.teamcode.Constants.Launcher.kLAUNCHER_TARGET_VELOCITY_FAR;
+import static org.firstinspires.ftc.teamcode.Constants.RGB_SERVO_LIGHT.*;
 
 //import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -38,7 +39,7 @@ public class TestTurret extends OpMode {
         blinky.init(hardwareMap);
         blinky.setUnknownAlliance();
         rgb_light = hardwareMap.get(Servo.class, "rgb_light");
-        rgb_light.setPosition(0);
+        rgb_light.setPosition(kBLACK);
     }
 
     @Override
@@ -49,14 +50,14 @@ public class TestTurret extends OpMode {
             alliance = kALLIANCE_RED;
             launcher.limeLight.setPipeline(kPIPELINE_ALLIANCE_RED);
             launcher.target_tag = kTAG_GOAL_RED;
-            rgb_light.setPosition(.28);
+            rgb_light.setPosition(kRED);
         }
         if (gamepad1.xWasPressed())
         {
             alliance = kALLIANCE_BLUE;
             launcher.limeLight.setPipeline(kPIPELINE_ALLIANCE_BLUE);
             launcher.target_tag = kTAG_GOAL_BLUE;
-            rgb_light.setPosition(.611);
+            rgb_light.setPosition(kBLUE);
         }
 
         if (alliance == kALLIANCE_RED)
