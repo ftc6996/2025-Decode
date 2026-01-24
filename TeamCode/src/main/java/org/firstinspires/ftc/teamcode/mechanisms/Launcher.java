@@ -223,14 +223,6 @@ public class Launcher {
                 if (current_velocity > (target_velocity * 1.00)) {
                     launchState = LaunchState.LAUNCH;
                 }
-                /*
-                if (current_velocity > (target_velocity * 1.05)){
-                    turret_flywheel_motor.setVelocity(target_velocity * 0.95);
-                }else if (current_velocity > (target_velocity * 1.00)) {//|| current_velocity < (target_velocity * 1.05)
-                    launchState = LaunchState.LAUNCH;
-                }
-                */
-
                 break;
             case LAUNCH:
                 //turret_feeder_servo.setPosition(kFEED_OPEN_POS);
@@ -286,17 +278,7 @@ public class Launcher {
                     }
                 }
                 break;
-        }/*
-        switch (kickingState){
-            case DOWN:
-                turret_feeder_servo.setPosition(kFEED_OPEN_POS);
-                break;
-            case UP:
-                turret_feeder_servo.setPosition(kFEED_CLOSE_POS);
-                break;
-            default:
-                break;
-        }*/
+        }
     }
 
     public double getFlyWheelVelocity()
