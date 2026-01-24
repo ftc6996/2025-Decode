@@ -2,20 +2,13 @@ package org.firstinspires.ftc.teamcode;
 //gamepad1.back    == robot vs field centric
 //gamepad1.options == reset heading
 import static org.firstinspires.ftc.teamcode.Constants.Drive.*;
-import static org.firstinspires.ftc.teamcode.Constants.Game.kPIPELINE_ALLIANCE_BLUE;
-import static org.firstinspires.ftc.teamcode.Constants.Game.kPIPELINE_ALLIANCE_RED;
-import static org.firstinspires.ftc.teamcode.Constants.Game.kTAG_GOAL_BLUE;
-import static org.firstinspires.ftc.teamcode.Constants.Game.kTAG_GOAL_RED;
+import static org.firstinspires.ftc.teamcode.Constants.Game.*;
 import static org.firstinspires.ftc.teamcode.Constants.Launcher.*;
-import static org.firstinspires.ftc.teamcode.Constants.kALLIANCE_BLUE;
-import static org.firstinspires.ftc.teamcode.Constants.kALLIANCE_RED;
-import static org.firstinspires.ftc.teamcode.Constants.kNOT_SET;
-
+import static org.firstinspires.ftc.teamcode.Constants.*;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.mechanisms.EndgameController;
 import org.firstinspires.ftc.teamcode.mechanisms.Launcher;
 import org.firstinspires.ftc.teamcode.mechanisms.Robot;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -35,9 +28,6 @@ public class DriverController extends OpMode{
     public Robot robot = new Robot();
     public double current_speed = .5;
 
-    private EndgameController endgameControl;
-    
-
     public int driver_mode = DRIVER_MODE_ROBOT;
     public String driver_mode_string = "Robot centric";
     public Gamepad saved_gamepad1 = new Gamepad();
@@ -48,8 +38,7 @@ public class DriverController extends OpMode{
     private boolean intake_on = false;
     private boolean outtake_on = false;
     private int alliance = kNOT_SET;
-    private int LaunchVelocityChanger = kLAUNCHER_TARGET_VELOCITY_FAR;
-
+    private int bonusVelocity = 0;
       /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -57,11 +46,6 @@ public class DriverController extends OpMode{
     public void init() {
         // Define and Initialize Motors
         robot.init(hardwareMap);
-
-
-
-        endgameControl = new EndgameController();
-        endgameControl.init(hardwareMap, telemetry);
     }
     
     /*
@@ -72,13 +56,13 @@ public class DriverController extends OpMode{
         if (gamepad1.bWasPressed())
         {
             alliance = kALLIANCE_RED;
-            robot.launcher.limeLight.setPipeline(kPIPELINE_ALLIANCE_RED);
+            robot.setAlliance(alliance);
             robot.launcher.target_tag = kTAG_GOAL_RED;
         }
         if (gamepad1.xWasPressed())
         {
             alliance = kALLIANCE_BLUE;
-            robot.launcher.limeLight.setPipeline(kPIPELINE_ALLIANCE_BLUE);
+            robot.setAlliance(alliance);
             robot.launcher.target_tag = kTAG_GOAL_BLUE;
         }
 
@@ -211,41 +195,16 @@ public class DriverController extends OpMode{
             }
         }
 
+        if (gamepad1.bWasPressed()) {
+            //TODO: start endgame or if it is already started cancel it
+        }
+
         if (gamepad2.dpadLeftWasPressed()){
-            //robot.setHoodPosition(robot.getLauncherHoodPosition()+0.1);
             robot.launcher.setHoodPosition(kHOOD_MAX_POS);
         }
         if (gamepad2.dpadRightWasPressed()){
-           // robot.setHoodPosition(robot.getLauncherHoodPosition()-0.1);
             robot.launcher.setHoodPosition(kHOOD_MIN_POS);
         }
-
-        /*if(gamepad2.start){
-            if(robot.launcher.limeLight.getPipeline() == alliance){
-                if (Math.abs(robot.launcher.limeLight.getTagLocationY()) > 10){
-                    double temp = robot.launcher.limeLight.getTagLocationX()*0.01;
-                    if (temp > 1){
-                        temp = 1;
-                    }
-                    robot.setTurretPower(-temp);
-
-                }
-            }
-        }*/
-
-        /*if (gamepad1.ri > 0)
-        {
-            twist = gamepad1.left_trigger;
-        }
-        else if (gamepad1.right_trigger > 0)
-        {
-            twist = -gamepad1.right_trigger;
-
-        }
-        else
-        {
-            twist = 0;
-        }*/
 
         //rotate turret
         if (gamepad2.left_trigger > 0)
@@ -273,10 +232,10 @@ public class DriverController extends OpMode{
 
         if (gamepad2.dpadUpWasPressed())
         {
-            LaunchVelocityChanger += 50;
+            bonusVelocity += 20;
         }else if (gamepad2.dpadDownWasPressed())
         {
-            LaunchVelocityChanger -= 50;
+            bonusVelocity -= 20;
         }
 
         if (gamepad2.dpadLeftWasPressed())
@@ -294,7 +253,7 @@ public class DriverController extends OpMode{
         }
         if (gamepad2.leftBumperWasPressed())
         {
-            robot.shoot(true, LaunchVelocityChanger, 1);
+            robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_FAR + bonusVelocity, 1);
         }
 
         //allow aux player to turn off shooter
@@ -357,50 +316,13 @@ public class DriverController extends OpMode{
             strafe = -new_strafe;
         }
 
-        EndgameController.commands endgameCommand;
-        if (gamepad1.bWasPressed()) {
-            if (endgameControl.getRobotState() == EndgameController.robotStates.IDLE_STATE) {
-                endgameCommand = EndgameController.commands.START;
-            } else {
-                endgameCommand = EndgameController.commands.ABORT;
-            }
-        } else {
-            endgameCommand = EndgameController.commands.NONE;
-        }
-/*
-        // If  is being pressed, AND we have found the desired target, Drive to target Automatically .
-        if (strafe_left && targetFound) {
-
-            // Determine heading, range and Yaw (tag image rotation) error so we can use them to control the robot automatically.
-            double  rangeError      = (desiredTag.ftcPose.range - DESIRED_DISTANCE);
-            double  headingError    = desiredTag.ftcPose.bearing;
-            double  yawError        = desiredTag.ftcPose.yaw;
-
-            // Use the speed and turn "gains" to calculate how we want the robot to move.
-            drive  = Range.clip(rangeError * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
-            twist   = Range.clip(headingError * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN) ;
-            strafe = Range.clip(-yawError * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
-
-            telemetry.addData("Auto","Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, twist);
-        }
-
- */
-        //to enable/disable this feature update the flag in Features.java
-        if (Features.FEATURE_ENDGAME_CONTROLLER_ENABLED) {
-            if (!endgameControl.processUpdate(robot.DriveTrain(), endgameCommand)) {
-                robot.move(drive, strafe, twist);
-            }
-
-            //endgameControl.showData();
-        } else {
-            robot.move(drive, strafe, twist);
-        }
-
+        robot.move(drive, strafe, twist);
         robot.processTelemetry(telemetry);
         telemetry.addData("Speed%: ", current_speed);
-        telemetry.addData("heading (degrees)", heading_deg);
-        telemetry.addData("Left Joy X", gamepad1.left_stick_x);
-        telemetry.addData("Left Joy Y", gamepad1.left_stick_y);
+        telemetry.addData("Bonus Vel ", bonusVelocity);
+        //telemetry.addData("heading (degrees)", heading_deg);
+        //telemetry.addData("Left Joy X", gamepad1.left_stick_x);
+        //telemetry.addData("Left Joy Y", gamepad1.left_stick_y);
         telemetry.addData("Driver Mode", driver_mode_string);
         telemetry.update();
         

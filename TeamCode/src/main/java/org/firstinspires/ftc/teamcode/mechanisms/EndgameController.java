@@ -146,7 +146,7 @@ public class EndgameController {
                 }
 
                 // When both sensors have detected the color
-                if ( leftDetected  && rightDetected) {
+                if (leftDetected && rightDetected) {
                     robotState = robotStates.ENTER_BASE_ZONE_STATE;
                 }
                 break;
@@ -188,78 +188,5 @@ public class EndgameController {
         }
         return returnValue;
 
-    }
-//    public boolean processUpdate(TwoWheelDrive drive, boolean startProcess) {
-//
-//        boolean returnValue = true;
-//
-//        switch (robotState) {
-//            case IDLE_STATE:
-//                if (startProcess) {
-//                    robotState = robotStates.INIT_STATE;
-//                } else {
-//                    returnValue = false;
-//                }
-//                break;
-//
-//            case INIT_STATE:
-//                drive.setPower(leftFrontPower, rightFrontPower);
-//                robotState = robotStates.LOCATE_BASE_ZONE_STATE;
-//                leftDetected = false;
-//                rightDetected = false;
-//                break;
-//
-//            case LOCATE_BASE_ZONE_STATE:
-//                if (leftColorSensor.findColor(ALLIANCE_COLOR)) {
-//                    leftDetected = true;
-//                    leftFrontPower = 0;
-//                    drive.setPower(leftFrontPower, rightFrontPower);
-//                }
-//
-//                if (rightColorSensor.findColor(ALLIANCE_COLOR)) {
-//                    rightDetected = true;
-//                    rightFrontPower = 0;
-//                    drive.setPower(leftFrontPower, rightFrontPower);
-//                }
-//
-//                // When both sensors have detected the color
-//                if (leftDetected && rightDetected) {
-//                    robotState = robotStates.ENTER_BASE_ZONE_STATE;
-//                }
-//                break;
-//
-//            case ENTER_BASE_ZONE_STATE:
-//                leftFrontPower = driveSpeed;
-//                rightFrontPower = driveSpeed;
-//                drive.setPower(leftFrontPower, rightFrontPower);
-//                robotState = robotStates.PARK_STATE;
-//                break;
-//
-//            case PARK_STATE:
-//                if (backColorSensor.findColor(ALLIANCE_COLOR)) {
-//                    // Stop all motion
-//                    drive.stop();
-//                    robotState = robotStates.IDLE_STATE;
-//                }
-//                break;
-//        }
-//        return returnValue;
-//
-//    }
-
-    public void switchAllianceColor() {
-        if (ALLIANCE_COLOR == ColorDetection.colorType.COLOR_BLUE) {
-            ALLIANCE_COLOR = ColorDetection.colorType.COLOR_RED;
-        } else {
-            ALLIANCE_COLOR = ColorDetection.colorType.COLOR_BLUE;
-        }
-    }
-
-    public void adjustDriveSpeed(double adjustDriveSpeed) {
-        driveSpeed = Range.clip(driveSpeed+adjustDriveSpeed,0,1);
-        leftBackPower = driveSpeed;
-        leftFrontPower = driveSpeed;
-        rightFrontPower = driveSpeed;
-        rightBackPower = driveSpeed;
     }
 }
