@@ -49,6 +49,7 @@ public class Auto_DECODE extends OpMode {
   private boolean isMoving = false;
   private Pose2D currentPos = new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0);
   private Pose2D targetPos = new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0);
+  private int bonusVelocity = 0;
   /*
    * Code to run ONCE when the driver hits INIT
    */
@@ -71,7 +72,6 @@ public class Auto_DECODE extends OpMode {
       alliance = kALLIANCE_BLUE;
       robot.setAlliance(alliance);
       robot.launcher.target_tag = kTAG_GOAL_BLUE;
-
     }
     if (gamepad1.bWasPressed() || gamepad2.bWasPressed()) {
       alliance = kALLIANCE_RED;
@@ -81,13 +81,14 @@ public class Auto_DECODE extends OpMode {
     if (gamepad1.dpadLeftWasPressed() || gamepad2.dpadLeftWasPressed()) {
       start_location = Location.START_LOCATION_1;
     }
-    if (gamepad1.dpadUpWasPressed() || gamepad2.dpadUpWasPressed()) {
+    if (gamepad1.dpadRightWasPressed() || gamepad2.dpadRightWasPressed()) {
       start_location = Location.START_LOCATION_2;
     }
-    if (gamepad1.dpadRightWasPressed() || gamepad2.dpadRightWasPressed()) {}
+    if (gamepad1.dpadUpWasPressed() || gamepad2.dpadUpWasPressed()) {
+        bonusVelocity += 20;
+    }
     if (gamepad1.dpadDownWasPressed() || gamepad2.dpadDownWasPressed()) {
-
-      start_location = Location.NOT_SET;
+        bonusVelocity -= 20;
     }
     telemetryChoice();
   }
@@ -117,9 +118,12 @@ public class Auto_DECODE extends OpMode {
 
     telemetry.addData("AutoState", autonomousState);
     //telemetry.addData("Obelisk", targetFoundTag);// targetFound ? desiredTag.id : "NONE");
+      telemetry.addData("Target Vel", robot.launcher.target_velocity);
+      telemetry.addData("Current Vel", robot.launcher.getFlyWheelVelocity());
     telemetry.addData("LauncherState", robot.launcher.launchState);
-    telemetry.addData("Fufiled shots", robot.launcher.numShotsFufiled);
-    telemetry.addData("Requested shots", robot.launcher.numShotsRequested);
+    //telemetry.addData("Fufiled shots", robot.launcher.numShotsFufiled);
+    //telemetry.addData("Requested shots", robot.launcher.numShotsRequested);
+    telemetry.addData("Turret Position:", robot.launcher.getPositon());
     //outputPositions("Current", robot.DriveTrain().getAllPositions());
     //outputPositions("Target", robot.DriveTrain().getAllPositions());
     telemetry.addData("current", Format2D(currentPos));
@@ -143,7 +147,7 @@ public class Auto_DECODE extends OpMode {
     case START:
       //this is to start the spinup
       currentPos = robot.DriveTrain().getPinpointPosition();
-      robot.launcher.target_velocity = kLAUNCHER_TARGET_VELOCITY_CLOSE;
+      robot.launcher.target_velocity = kLAUNCHER_TARGET_VELOCITY_FAR + bonusVelocity;
       robot.launcher.setFlyWheelVelocity(robot.launcher.target_velocity);
       robot.launcher.setHoodPosition(kHOOD_MAX_POS);
 
@@ -186,7 +190,7 @@ public class Auto_DECODE extends OpMode {
     case LAUNCH:
       //start the shooting process
       robot.launcher.rapidFire = true;
-      robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_FAR, 3);
+      robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_FAR + bonusVelocity, 3);
       autonomousState = AutonomousState.WAIT_FOR_LAUNCH;
 
       break;
@@ -248,7 +252,7 @@ public class Auto_DECODE extends OpMode {
       case START:
         //this is to start the spinup
         currentPos = robot.DriveTrain().getPinpointPosition();
-        robot.launcher.target_velocity = kLAUNCHER_TARGET_VELOCITY_CLOSE;
+        robot.launcher.target_velocity = kLAUNCHER_TARGET_VELOCITY_CLOSE + bonusVelocity;
         robot.launcher.setFlyWheelVelocity(robot.launcher.target_velocity);
         robot.launcher.setHoodPosition(kHOOD_MIN_POS);
         if (runtime.seconds() > 2) {
@@ -290,7 +294,7 @@ public class Auto_DECODE extends OpMode {
       case LAUNCH:
         //start the shooting process
         robot.launcher.rapidFire = true;
-        robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_CLOSE, 3);
+        robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_CLOSE + bonusVelocity, 3);
         autonomousState = AutonomousState.WAIT_FOR_LAUNCH;
         break;
       case WAIT_FOR_LAUNCH:
@@ -373,6 +377,7 @@ public class Auto_DECODE extends OpMode {
     else
       telemetry.addData("Start Location", "kNOT_SET");
 
+      telemetry.addData("Bonus Velocity", bonusVelocity);
     telemetry.update();
   }
 }
