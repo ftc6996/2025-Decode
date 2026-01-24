@@ -17,6 +17,8 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 package org.firstinspires.ftc.teamcode;
+import static org.firstinspires.ftc.teamcode.Constants.RGB_SERVO_LIGHT.*;
+
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -44,7 +46,7 @@ public class TestLight extends OpMode {
     public void init() {
         telemetry.addData("Status", "Initialized");
         rgb_light = hardwareMap.get(Servo.class, "rgb_light");
-        rgb_light.setPosition(0);
+        rgb_light.setPosition(kWHITE);
     }
 
     /*
@@ -70,22 +72,22 @@ public class TestLight extends OpMode {
  
         if (gamepad1.bWasPressed()){
             telemetry.addData("LED", "red");
-            rgb_light.setPosition(.28); // red
+            rgb_light.setPosition(kRED); // red
         }
         
         if (gamepad1.xWasPressed()){
             telemetry.addData("LED", "blue");
-            rgb_light.setPosition(0.611); // blue
+            rgb_light.setPosition(kBLUE); // blue
     
         }
          if (gamepad1.aWasPressed()){
              telemetry.addData("LED", "green");
-            rgb_light.setPosition(.500); // green
+            rgb_light.setPosition(kGREEN); // green
     
         }
          if (gamepad1.yWasPressed()){
              telemetry.addData("LED", "yellow");
-            rgb_light.setPosition(0.388); // yellow
+            rgb_light.setPosition(kYELLOW); // yellow
     
         }
     }

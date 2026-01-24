@@ -7,6 +7,18 @@ public interface Constants {
     static final int kALLIANCE_RED = 2;
     static final int kALLIANCE_BLUE = 1;
 
+    //RGB Light Values
+    public interface RGB_SERVO_LIGHT
+    {
+        static final double kOFF = 0;
+        static final double kBLACK = kOFF;
+        static final double kRED = 0.28;
+        static final double kBLUE = 0.611;
+        static final double kGREEN = 0.500;
+        static final double kYELLOW = 0.388;
+        static final double kPURPLE = 0.722;
+        static final double kWHITE = 1;
+    }
     public interface Game {
         //April Tag constants
         static final int kTAG_ANY = -1;
