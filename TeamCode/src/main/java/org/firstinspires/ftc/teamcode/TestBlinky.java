@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.mechanisms.Blinky;
 
 @TeleOp(name="TestBlinky", group="TEST")
-//@Disabled
+@Disabled
 public class TestBlinky extends OpMode {
 
     private Blinky blinky;
