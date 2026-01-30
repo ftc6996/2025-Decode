@@ -6,16 +6,12 @@ import static org.firstinspires.ftc.teamcode.Constants.Launcher.*;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.mechanisms.Robot;
-
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Autonomous(name = "Auto_DECODE")
 public class Auto_DECODE extends OpMode {
@@ -30,8 +26,8 @@ public class Auto_DECODE extends OpMode {
 
   private enum Location {
     NOT_SET,
-    START_LOCATION_1,
-    START_LOCATION_2
+    BASIC_SMALL_ZONE,
+    BASIC_BIG_ZONE
   }
   private Location start_location = Location.NOT_SET;
 
@@ -43,6 +39,12 @@ public class Auto_DECODE extends OpMode {
     WAIT_FOR_LAUNCH,
     MOVE_OUT_OF_ZONE,
     COMPLETE,
+    //BONUS MOVES
+    MOVE_TO_SPIKE,
+    INTAKE_AT_SPIKE,
+    MOVE_TO_ZONE,
+    LAUNCH_AGAIN,
+    MOVE_OUT_OF_ZONE_AGAIN,
     STOP
   }
   private AutonomousState autonomousState = AutonomousState.IDLE;
@@ -50,6 +52,7 @@ public class Auto_DECODE extends OpMode {
   private Pose2D currentPos = new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0);
   private Pose2D targetPos = new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0);
   private int bonusVelocity = 0;
+  private boolean bonusAuto = false;
   /*
    * Code to run ONCE when the driver hits INIT
    */
@@ -78,11 +81,15 @@ public class Auto_DECODE extends OpMode {
       robot.setAlliance(alliance);
       robot.launcher.target_tag = kTAG_GOAL_RED;
     }
+    if (gamepad1.aWasPressed() || gamepad2.aWasPressed())
+    {
+        bonusAuto = !bonusAuto;
+    }
     if (gamepad1.dpadLeftWasPressed() || gamepad2.dpadLeftWasPressed()) {
-      start_location = Location.START_LOCATION_1;
+      start_location = Location.BASIC_SMALL_ZONE;
     }
     if (gamepad1.dpadRightWasPressed() || gamepad2.dpadRightWasPressed()) {
-      start_location = Location.START_LOCATION_2;
+      start_location = Location.BASIC_BIG_ZONE;
     }
     if (gamepad1.dpadUpWasPressed() || gamepad2.dpadUpWasPressed()) {
         bonusVelocity += 20;
@@ -110,10 +117,10 @@ public class Auto_DECODE extends OpMode {
     robot.update();
     robot.process(runtime);
 
-    if (start_location == Location.START_LOCATION_1) {
-      runStartLocation1();
-    } else if (start_location == Location.START_LOCATION_2) {
-      runStartLocation2();
+    if (start_location == Location.BASIC_SMALL_ZONE) {
+      runBasicSmallZone();
+    } else if (start_location == Location.BASIC_BIG_ZONE) {
+      runBasicBigZone();
     }
 
     telemetry.addData("AutoState", autonomousState);
@@ -141,7 +148,7 @@ public class Auto_DECODE extends OpMode {
     return output;
   }
   //Small/Far Zone
-  public void runStartLocation1() {
+  public void runBasicSmallZone() {
     //shoot
     switch (autonomousState) {
     case START:
@@ -247,7 +254,7 @@ public class Auto_DECODE extends OpMode {
   }
 
   //Big/Close Zone
-  public void runStartLocation2() {
+  public void runBasicBigZone() {
     switch (autonomousState) {
       case START:
         //this is to start the spinup
@@ -370,14 +377,25 @@ public class Auto_DECODE extends OpMode {
     else
       telemetry.addData("Alliance", "kNOT_SET");
 
-    if (start_location == Location.START_LOCATION_1)
-      telemetry.addData("Start Location", "Small/Far Zone");
-    else if (start_location == Location.START_LOCATION_2)
-      telemetry.addData("Start Location", "Big/Close Zone");
-    else
-      telemetry.addData("Start Location", "kNOT_SET");
-
-      telemetry.addData("Bonus Velocity", bonusVelocity);
+    if (start_location == Location.BASIC_SMALL_ZONE) {
+        if (bonusAuto) {
+            telemetry.addData("Auto To Run", "Basic Small/Far Zone");
+        } else {
+            telemetry.addData("Auto To Run", "Basic Small/Far Zone w/bonus");
+        }
+    }
+    else if (start_location == Location.BASIC_BIG_ZONE) {
+        if (bonusAuto) {
+            telemetry.addData("Auto To Run", "Big/Close Zone");
+        } else {
+            telemetry.addData("Auto To Run", "Big/Close Zone w/bonus");
+        }
+    }
+    else{
+        telemetry.addData("Auto To Run", "kNOT_SET");
+    }
+    telemetry.addLine("D-Pad Up/Down to change bonusVelocity");
+    telemetry.addData("Bonus Velocity", bonusVelocity);
     telemetry.update();
   }
 }
