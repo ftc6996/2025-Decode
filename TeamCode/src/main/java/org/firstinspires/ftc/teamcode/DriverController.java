@@ -53,17 +53,15 @@ public class DriverController extends OpMode{
      */
     @Override
     public void init_loop() {
-        if (gamepad1.bWasPressed())
+        if (gamepad1.bWasPressed() || gamepad2.bWasPressed())
         {
             alliance = kALLIANCE_RED;
             robot.setAlliance(alliance);
-            robot.launcher.target_tag = kTAG_GOAL_RED;
         }
-        if (gamepad1.xWasPressed())
+        if (gamepad1.xWasPressed() || gamepad2.xWasPressed())
         {
             alliance = kALLIANCE_BLUE;
             robot.setAlliance(alliance);
-            robot.launcher.target_tag = kTAG_GOAL_BLUE;
         }
 
         if (alliance == kALLIANCE_RED)
@@ -73,6 +71,7 @@ public class DriverController extends OpMode{
         else
             telemetry.addData("Alliance", "kNOT_SET");
 
+        //telemetry.addData("Pipeline", robot.launcher.limeLight.getPipeline());
         telemetry.addData("Version", "4");
         telemetry.update();
     }
@@ -268,10 +267,10 @@ public class DriverController extends OpMode{
             intake_on = !intake_on;
 
             if (intake_on){
-                robot.intake(1);
+                robot.intake(1, false);
             }
             else {
-                robot.intake(0);
+                robot.intake(0, true);
             }
         }
         if (gamepad2.bWasPressed())
@@ -279,10 +278,10 @@ public class DriverController extends OpMode{
             outtake_on = !outtake_on;
 
             if (outtake_on) {
-                robot.intake(-1);
+                robot.intake(-1, false);
             }
             else {
-                robot.intake(0);
+                robot.intake(0, true);
             }
         }
 

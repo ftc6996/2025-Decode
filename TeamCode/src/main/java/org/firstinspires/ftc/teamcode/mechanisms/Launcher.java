@@ -14,10 +14,14 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.mechanisms.LimeLight;
@@ -48,7 +52,7 @@ public class Launcher {
     public boolean isTargetFound = false;
     private boolean shotRequested = false;
     public boolean rapidFire = false;
-
+    public Pose2D aprilTagPose =  new Pose2D(DistanceUnit.INCH, kRED_GOAL_X_OFFSET, kRED_GOAL_Y_OFFSET, AngleUnit.DEGREES, 0);
     public int numShotsRequested = 0;
     public int numShotsFufiled = 0;
 
@@ -115,12 +119,13 @@ public class Launcher {
         limeLight = new LimeLight(vision);
     }
 
-    public void setIntakeMotor(double power)
+    public void setIntakeMotor(double power, boolean all)
     {
         intake_motor.setPower(power);
         servo0.setPower(power);
         servo1.setPower(-power);
-        servo2.setPower(-power);
+        if (all)
+            servo2.setPower(-power);
     }
     /// Power > 0 turn left, Power < 0 turn right
     public void setTurretPower(double power)
@@ -148,17 +153,37 @@ public class Launcher {
     {
         return turret_encoder.getCurrentPosition();
     }
+    public double getTurretAngle()
+    {
+        return getPositon() / kENCODER_CPR;
+    }
+    public void resetTurret()
+    {
+        turret_encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turret_encoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
     public boolean isLeftSensorTriggered(){
        return turret_left_limit_sensor.isPressed();
     }
     public boolean isRightSensorTriggered(){
       return turret_right_limit_sensor.isPressed();
     }
-    public void process()
+    public void process(Pose2D position)
     {
         limeLight.clearFoundAprilTag();
         limeLight.getAprilTags();
         isTargetFound = (limeLight.getTagID() == target_tag);
+
+        Pose2D turretCenter = new Pose2D(DistanceUnit.INCH,
+                position.getX(DistanceUnit.INCH) - (5 * Math.cos(position.getHeading(AngleUnit.RADIANS))),
+                position.getY(DistanceUnit.INCH) - (2.8 * Math.sin(position.getHeading(AngleUnit.RADIANS))),
+                AngleUnit.RADIANS,
+                position.getHeading(AngleUnit.RADIANS)
+        );
+
+        //always getting the distance from the robot to the april tag
+        double dX = turretCenter.getX(DistanceUnit.INCH) - aprilTagPose.getX(DistanceUnit.INCH);
+        double dY = turretCenter.getY(DistanceUnit.INCH) - aprilTagPose.getY(DistanceUnit.INCH);
 
         switch (turningState)
         {

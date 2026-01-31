@@ -9,25 +9,39 @@ import static org.firstinspires.ftc.teamcode.Constants.Launcher.kLAUNCHER_TARGET
 import static org.firstinspires.ftc.teamcode.Constants.RGB_SERVO_LIGHT.*;
 
 //import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.mechanisms.Blinky;
 import org.firstinspires.ftc.teamcode.mechanisms.Launcher;
 import org.firstinspires.ftc.teamcode.mechanisms.Robot;
 
 @TeleOp(name="TestTurret", group="TEST")
-//@Disabled
+@Disabled
 public class TestTurret extends OpMode {
     double position = 0;
     Launcher launcher;
     Blinky blinky;
     private Servo rgb_light;
+    private GoBildaPinpointDriver pinpoint;
 
     private int alliance = kALLIANCE_RED;
+
+    private void initPinPoint()
+    {
+        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        pinpoint.setPosition(new Pose2D(DistanceUnit.MM,0,0, AngleUnit.DEGREES,0));
+        pinpoint.setOffsets(90,0,DistanceUnit.MM);
+        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+    }
+
     @Override
     public void init() {
         launcher = new Launcher();
@@ -76,7 +90,8 @@ public class TestTurret extends OpMode {
     @Override
     public void loop() {
 
-        launcher.process();
+        pinpoint.update();
+        launcher.process(pinpoint.getPosition());
 
         if (launcher.isTargetFound)
         {

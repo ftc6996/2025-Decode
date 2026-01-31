@@ -11,7 +11,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 public class Robot {
 
@@ -64,8 +66,9 @@ public class Robot {
     }
     public void process(ElapsedTime current)
     {
+        update();
         blinky.process(current);
-        launcher.process();
+        launcher.process(mecanumDrive.getPinpointPosition());
         if (launcher.isTargetFound)
         {
             rgb_light.setPosition(kGREEN);
@@ -81,16 +84,16 @@ public class Robot {
                 break;
             }
             case INTAKEON:
-                intake(1);
+                intake(1, true);
                 intakeTimer.reset();
                 break;
             case INTAKEOFF:
                 if(intakeTimer.seconds() >= 1){
-                    intake(0);
+                    intake(0, true);
                 }
                 break;
             case INTAKEONREVERSE:
-                intake(-1);
+                intake(-1, true);
 
             default:
                 //nothing
@@ -114,9 +117,9 @@ public class Robot {
     public void move(double drive, double strafe, double twist) {
         mecanumDrive.move(drive, strafe, twist);
     }
-    public void intake(double power) {
+    public void intake(double power, boolean all) {
         intake_motor.setPower(power);
-        launcher.setIntakeMotor(power);
+        launcher.setIntakeMotor(power, all);
     }
 
     public void seekTagLeft() {
@@ -135,6 +138,7 @@ public class Robot {
             rgb_light.setPosition(kRED);
             launcher.limeLight.setPipeline(Game.kPIPELINE_ALLIANCE_RED);
             launcher.target_tag = kTAG_GOAL_RED;
+            launcher.aprilTagPose =  new Pose2D(DistanceUnit.INCH, kRED_GOAL_X_OFFSET, kRED_GOAL_Y_OFFSET, AngleUnit.DEGREES, 0);
         }
         else if (alliance == kALLIANCE_BLUE)
         {
@@ -143,6 +147,7 @@ public class Robot {
             launcher.target_tag = kTAG_GOAL_BLUE;
             blinky.setBlueAlliance();
             rgb_light.setPosition(kBLUE);
+            launcher.aprilTagPose =  new Pose2D(DistanceUnit.INCH, kBLUE_GOAL_X_OFFSET, kBLUE_GOAL_Y_OFFSET, AngleUnit.DEGREES, 0);
         }
         else
         {
@@ -194,6 +199,7 @@ public class Robot {
         telemetry.addData("Left Mag",launcher.isLeftSensorTriggered());
         telemetry.addData("Right Mag",launcher.isRightSensorTriggered());
         telemetry.addData("Turret Pos",launcher.getPositon());
+        telemetry.addData("Turret Angle", launcher.getTurretAngle());
         telemetry.addLine("-----------------------------------");
         telemetry.addData("Pipeline",launcher.limeLight.getPipeline());
         telemetry.addData("turret state",launcher.turningState);

@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
 public interface Constants {
 
     //Alliance
@@ -31,6 +33,11 @@ public interface Constants {
         static final double kTAG_DIMENSION_SIZE_IN = 6.5;
         static final double kTAG_DIMENSION_SIZE_MM = 165;
 
+        //per onshape, red -x/-y, blue +x/-y   x=58 y=55 inches
+        static final double kRED_GOAL_X_OFFSET = -66;
+        static final double kRED_GOAL_Y_OFFSET = 66;
+        static final double kBLUE_GOAL_X_OFFSET = -66;
+        static final double kBLUE_GOAL_Y_OFFSET = -66;
         static final double kTAG_TOP_GOAL_HEIGHT_IN = 38.75;
         static final double kTAG_CENTER_OFFSET_FROM_TOP_GOAL_IN = 9.25;
 
@@ -43,7 +50,7 @@ public interface Constants {
         static final double kHOOD_MIN_POS = 1.0;
         static final double kHOOD_MAX_POS = .6;
         static final int kLAUNCHER_TARGET_VELOCITY_CLOSE = 850; //-80;
-        static final int kLAUNCHER_TARGET_VELOCITY_FAR = 1150; //-80
+        static final int kLAUNCHER_TARGET_VELOCITY_FAR = 1050; //-100
         static final double kFEED_TIME_SECONDS = 1;
         static final double kFEED_OPEN_POS = 0;
         static final double kFEED_CLOSE_POS = 0.45;
