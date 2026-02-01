@@ -71,6 +71,8 @@ public class Auto_DECODE extends OpMode {
    */
   @Override
   public void init_loop() {
+      robot.getAprilTag();
+
     if (gamepad1.xWasPressed() || gamepad2.xWasPressed()) {
       alliance = kALLIANCE_BLUE;
       robot.setAlliance(alliance);
@@ -107,6 +109,8 @@ public class Auto_DECODE extends OpMode {
   public void start() {
     runtime.reset();
     autonomousState = AutonomousState.START;
+      robot.launcher.limeLight.vision.start();
+
   }
 
   /*
@@ -445,6 +449,7 @@ public class Auto_DECODE extends OpMode {
   }
 
   public void telemetryChoice() {
+    telemetry.addData("Pipeline", robot.launcher.limeLight.getPipeline());
     telemetry.addData("Version", "3");
     if (alliance == kALLIANCE_RED)
       telemetry.addData("Alliance", "kALLIANCE_RED");

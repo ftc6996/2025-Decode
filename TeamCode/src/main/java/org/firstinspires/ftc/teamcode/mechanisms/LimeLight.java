@@ -17,7 +17,7 @@ import java.util.List;
 public class LimeLight {
     // Dont forget to run Limelight Hardware Manager
     // IP Address http://172.28.0.1:5801/
-    private Limelight3A vision;
+    public Limelight3A vision;
     private LLResult result;
 
     //Store the information of the april tag we are tracking

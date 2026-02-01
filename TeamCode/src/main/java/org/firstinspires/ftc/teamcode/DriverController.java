@@ -53,6 +53,7 @@ public class DriverController extends OpMode{
      */
     @Override
     public void init_loop() {
+        robot.getAprilTag();
         if (gamepad1.bWasPressed() || gamepad2.bWasPressed())
         {
             alliance = kALLIANCE_RED;
@@ -71,7 +72,7 @@ public class DriverController extends OpMode{
         else
             telemetry.addData("Alliance", "kNOT_SET");
 
-        //telemetry.addData("Pipeline", robot.launcher.limeLight.getPipeline());
+        telemetry.addData("Pipeline", robot.launcher.limeLight.getPipeline());
         telemetry.addData("Version", "4");
         telemetry.update();
     }
@@ -83,6 +84,7 @@ public class DriverController extends OpMode{
     public void start() {
         runtime.reset();
         runtime.startTime();
+        robot.launcher.limeLight.vision.start();
     }
 
     /*
