@@ -27,13 +27,15 @@ public class Auto_DECODE extends OpMode {
   private enum Location {
     NOT_SET,
     BASIC_SMALL_ZONE,
-    BASIC_BIG_ZONE
+    BASIC_BIG_ZONE_P1,
+    BASIC_BIG_ZONE_P2
   }
   private Location start_location = Location.NOT_SET;
 
   private enum AutonomousState {
     IDLE,
     START,
+      MOVE_TO_PRELAUNCH,
     MOVE_TO_LAUNCH,
     LAUNCH,
     WAIT_FOR_LAUNCH,
@@ -52,6 +54,7 @@ public class Auto_DECODE extends OpMode {
   private Pose2D currentPos = new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0);
   private Pose2D targetPos = new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0);
   private int bonusVelocity = 0;
+  private Pose2D FarShootingSpot;
   private boolean bonusAuto = false;
   /*
    * Code to run ONCE when the driver hits INIT
@@ -91,14 +94,20 @@ public class Auto_DECODE extends OpMode {
       start_location = Location.BASIC_SMALL_ZONE;
     }
     if (gamepad1.dpadRightWasPressed() || gamepad2.dpadRightWasPressed()) {
-      start_location = Location.BASIC_BIG_ZONE;
+      start_location = Location.BASIC_BIG_ZONE_P2;
     }
     if (gamepad1.dpadUpWasPressed() || gamepad2.dpadUpWasPressed()) {
-        bonusVelocity += 20;
+        start_location = Location.BASIC_BIG_ZONE_P1;
     }
     if (gamepad1.dpadDownWasPressed() || gamepad2.dpadDownWasPressed()) {
-        bonusVelocity -= 20;
+        start_location = Location.NOT_SET;
     }
+      if (gamepad1.leftBumperWasPressed() || gamepad2.leftBumperWasPressed()) {
+          bonusVelocity += 20;
+      }
+      if (gamepad1.rightBumperWasPressed() || gamepad2.rightBumperWasPressed()) {
+          bonusVelocity -= 20;
+      }
     telemetryChoice();
   }
 
@@ -123,8 +132,14 @@ public class Auto_DECODE extends OpMode {
 
     if (start_location == Location.BASIC_SMALL_ZONE) {
       runBasicSmallZone();
-    } else if (start_location == Location.BASIC_BIG_ZONE) {
-      runBasicBigZone();
+    } else if (start_location == Location.BASIC_BIG_ZONE_P1) {
+      runBasicBigZoneP1();
+    }
+    else if (start_location == Location.BASIC_BIG_ZONE_P2) {
+        runBasicBigZone();
+    }
+    else {
+        TestMove();
     }
 
     telemetry.addData("AutoState", autonomousState);
@@ -246,13 +261,14 @@ public class Auto_DECODE extends OpMode {
               // todo turn intake on and move forward
                 robot.intake(1, true);
                 if (alliance == kALLIANCE_BLUE) {
-                    targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) - 24,
+                    targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) - 30,
                             currentPos.getY(DistanceUnit.INCH) - 0, AngleUnit.DEGREES, 0);
                 }
                 else {
-                    targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 24,
+                    targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 30,
                             currentPos.getY(DistanceUnit.INCH) + 0, AngleUnit.DEGREES, 0);
                 }
+                FarShootingSpot = currentPos;
           }
           else{
               autonomousState = AutonomousState.COMPLETE;
@@ -269,7 +285,7 @@ public class Auto_DECODE extends OpMode {
                     robot.move(-.5, 0, 0);
                 }
                 else {
-                    robot.move(.5, 0, 0);
+                    robot.move(-.5, 0, 0);
                 }
                 //start moving to X/Y
                 isMoving = true;
@@ -284,14 +300,15 @@ public class Auto_DECODE extends OpMode {
                     isMoving = false;
 
                     autonomousState = AutonomousState.MOVE_TO_ZONE;
-                    if (alliance == kALLIANCE_BLUE) {
-                        targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) - 30,
-                                currentPos.getY(DistanceUnit.INCH) - 30, AngleUnit.DEGREES, 0);
+                    targetPos = FarShootingSpot;
+                   /* if (alliance == kALLIANCE_BLUE) {
+                        targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 15,
+                                currentPos.getY(DistanceUnit.INCH) + 15, AngleUnit.DEGREES, 0);
                     }
                     else {
-                        targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 30,
-                                currentPos.getY(DistanceUnit.INCH) + 30, AngleUnit.DEGREES, 0);
-                    }
+                        targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 15,
+                                currentPos.getY(DistanceUnit.INCH) + 15, AngleUnit.DEGREES, 0);
+                    }*/
                 }
             }
             break;
@@ -300,10 +317,10 @@ public class Auto_DECODE extends OpMode {
     {
         if (!isMoving) {
             if (alliance == kALLIANCE_BLUE) {
-                robot.move(-.5, -.5, 0);
+                robot.move(-.5, +.5, 0);
             }
             else {
-                robot.move(.5, 0.5, 0);
+                robot.move(.5, -0.5, 0);
             }
             //start moving to X/Y
             isMoving = true;
@@ -435,8 +452,143 @@ public class Auto_DECODE extends OpMode {
         break;
     }
   }
+  public void TestMove()
+  {
+      robot.move(-.5, 0, 0); // negative drive moves forward
+  }
 
-  public void outputPositions(String label, int[] position) {
+  public void runBasicBigZoneP1() {
+        switch (autonomousState) {
+            case START:
+                //this is to start the spinup
+                currentPos = robot.DriveTrain().getPinpointPosition();
+                robot.launcher.target_velocity = kLAUNCHER_TARGET_VELOCITY_CLOSE + bonusVelocity;
+                robot.launcher.setFlyWheelVelocity(robot.launcher.target_velocity);
+                robot.launcher.setHoodPosition(kHOOD_MIN_POS);
+                if (runtime.seconds() > 2) {
+                    if (alliance == kALLIANCE_BLUE) {
+                        targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 20,
+                                currentPos.getY(DistanceUnit.INCH) - 0, AngleUnit.DEGREES, 0);
+                    }
+                    else {
+                        targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 20,
+                                currentPos.getY(DistanceUnit.INCH) + 0, AngleUnit.DEGREES, 0);
+                    }
+                    autonomousState = AutonomousState.MOVE_TO_PRELAUNCH;
+                }
+                break;
+            case MOVE_TO_PRELAUNCH: {
+                if (!isMoving) {
+                    if (alliance == kALLIANCE_BLUE) {
+                        robot.move(-.5, 0, 0);
+                    } else {
+                        robot.move(-.5, 0, 0);
+                    }
+                    //start moving to X/Y
+                    isMoving = true;
+                } else {
+                    currentPos = robot.DriveTrain().getPinpointPosition();
+                    double dX = currentPos.getX(DistanceUnit.INCH) - targetPos.getX(DistanceUnit.INCH);
+                    double dY = currentPos.getY(DistanceUnit.INCH) - targetPos.getY(DistanceUnit.INCH);
+                    double distance = Math.sqrt(dX * dX + dY * dY);
+                    if (Math.abs(dX) < 1) {
+                        robot.DriveTrain().stop();
+                        autonomousState = AutonomousState.MOVE_TO_LAUNCH;
+                        isMoving = false;
+                        if (alliance == kALLIANCE_BLUE) {
+                            targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
+                                    currentPos.getY(DistanceUnit.INCH) - 40, AngleUnit.DEGREES, 0);
+                        } else {
+                            targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
+                                    currentPos.getY(DistanceUnit.INCH) + 40, AngleUnit.DEGREES, 0);
+                        }
+                    }
+                }
+                break;
+            }
+            case MOVE_TO_LAUNCH:
+                if (!isMoving) {
+                    if ( alliance == kALLIANCE_BLUE) {
+                        robot.move(0, -.5, 0);
+                    }
+                    else {
+                        robot.move(0, .5, 0);
+                    }
+                    //start moving to X/Y
+                    isMoving = true;
+                } else {
+                    currentPos = robot.DriveTrain().getPinpointPosition();
+                    double dX = currentPos.getX(DistanceUnit.INCH) - targetPos.getX(DistanceUnit.INCH);
+                    double dY = currentPos.getY(DistanceUnit.INCH) - targetPos.getY(DistanceUnit.INCH);
+                    double distance = Math.sqrt(dX*dX + dY*dY);
+                    if (Math.abs(dY) < 1)
+                    {
+                        robot.DriveTrain().stop();
+                        autonomousState = AutonomousState.LAUNCH;
+                        isMoving = false;
+                    }
+                    //we are moving, check to see if we get to destination
+                }
+                break;
+            case LAUNCH:
+                //start the shooting process
+                robot.launcher.rapidFire = true;
+                robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_CLOSE + bonusVelocity, 3);
+                autonomousState = AutonomousState.WAIT_FOR_LAUNCH;
+                break;
+            case WAIT_FOR_LAUNCH:
+                //are we done shooting???
+                if (!robot.launcher.isShotRequested()) {
+                    autonomousState = AutonomousState.MOVE_OUT_OF_ZONE;
+                    if (alliance == kALLIANCE_BLUE) {
+                        targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
+                                currentPos.getY(DistanceUnit.INCH) - 26, AngleUnit.DEGREES, 0);
+                    }
+                    else {
+                        targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
+                                currentPos.getY(DistanceUnit.INCH) + 26, AngleUnit.DEGREES, 0);
+                    }
+
+                }
+                break;
+            case MOVE_OUT_OF_ZONE:
+                if (!isMoving) {
+                    if (alliance == kALLIANCE_BLUE) {
+                        robot.move(0, -.5, 0);
+                    }
+                    else {
+                        robot.move(0, .5, 0);
+                    }
+                    //start moving to X/Y
+                    isMoving = true;
+                } else {
+                    currentPos = robot.DriveTrain().getPinpointPosition();
+                    double dX = Math.abs(currentPos.getX(DistanceUnit.INCH) - targetPos.getX(DistanceUnit.INCH));
+                    double dY = Math.abs(currentPos.getY(DistanceUnit.INCH) - targetPos.getY(DistanceUnit.INCH));
+
+                    if ((dY < 1))
+                    {
+                        robot.DriveTrain().stop();
+                        autonomousState = AutonomousState.COMPLETE;
+                        isMoving = false;
+                    }
+                    //we are moving, check to see if we get to destination
+                }
+                break;
+            case COMPLETE:
+                robot.DriveTrain().stop();
+                isMoving = false;
+                //finished = true;
+                break;
+            case STOP:
+                robot.DriveTrain().stop();
+                isMoving = false;
+                //finished = true;
+                break;
+        }
+    }
+
+    public void outputPositions(String label, int[] position) {
     telemetry.addData(label, "LF (%d), RF (%d), LB (%d), RB (%d)",
       position[0], position[1], position[2], position[3]);
   }
@@ -465,11 +617,18 @@ public class Auto_DECODE extends OpMode {
             telemetry.addData("Auto To Run", "Basic Small/Far Zone");
         }
     }
-    else if (start_location == Location.BASIC_BIG_ZONE) {
+    else if (start_location == Location.BASIC_BIG_ZONE_P1) {
         if (bonusAuto) {
-            telemetry.addData("Auto To Run", "Big/Close Zone w/bonus");
+            telemetry.addData("Auto To Run", "Big/Close P1 Zone w/bonus");
         } else {
-            telemetry.addData("Auto To Run", "Big/Close Zone");
+            telemetry.addData("Auto To Run", "Big/Close P1 Zone");
+        }
+    }
+    else if (start_location == Location.BASIC_BIG_ZONE_P2) {
+        if (bonusAuto) {
+            telemetry.addData("Auto To Run", "Big/Close P2 Zone w/bonus");
+        } else {
+            telemetry.addData("Auto To Run", "Big/Close P2 Zone");
         }
     }
     else{

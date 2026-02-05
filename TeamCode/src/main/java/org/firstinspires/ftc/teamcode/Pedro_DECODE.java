@@ -26,7 +26,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.util.Timer;
 
-@Autonomous(name = "Auto_DECODE")
+@Autonomous(name = "Pedro_DECODE")
 public class Pedro_DECODE extends OpMode {
 
   private ElapsedTime runtime = new ElapsedTime();
