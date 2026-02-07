@@ -65,6 +65,7 @@ public class Auto_DECODE extends OpMode {
   private int bonusVelocity = 0;
   private Pose2D FarShootingSpot;
   private boolean bonusAuto = false;
+  private boolean move1complete = false;
   /*
    * Code to run ONCE when the driver hits INIT
    */
@@ -177,193 +178,297 @@ public class Auto_DECODE extends OpMode {
   }
   //Small/Far Zone
   public void runBasicSmallZone() {
-    //shoot
-    switch (autonomousState) {
-    case START:
-      //this is to start the spinup
-      currentPos = robot.DriveTrain().getPinpointPosition();
-      robot.launcher.target_velocity = kLAUNCHER_TARGET_VELOCITY_FAR + bonusVelocity;
-      robot.launcher.setFlyWheelVelocity(robot.launcher.target_velocity);
-      robot.launcher.setHoodPosition(kHOOD_MAX_POS);
+      //shoot
+      switch (autonomousState) {
+          case START:
+              //this is to start the spinup
+              currentPos = robot.DriveTrain().getPinpointPosition();
+              robot.launcher.target_velocity = kLAUNCHER_TARGET_VELOCITY_FAR + bonusVelocity;
+              robot.launcher.setFlyWheelVelocity(robot.launcher.target_velocity);
+              robot.launcher.setHoodPosition(kHOOD_MAX_POS);
 
-      if (runtime.seconds() > 2) {
-        if (alliance == kALLIANCE_BLUE) {
-          targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
-                  currentPos.getY(DistanceUnit.INCH) - 12.5, AngleUnit.DEGREES, 0);
-        }
-        else {
-          targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
-                  currentPos.getY(DistanceUnit.INCH) + 12.5, AngleUnit.DEGREES, 0);
-        }
-        autonomousState = AutonomousState.MOVE_TO_LAUNCH;
+              if (runtime.seconds() > 2) {
+                  if (alliance == kALLIANCE_BLUE) {
+                      targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
+                              currentPos.getY(DistanceUnit.INCH) - 12.5, AngleUnit.DEGREES, 0);
+                  } else {
+                      targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
+                              currentPos.getY(DistanceUnit.INCH) + 12.5, AngleUnit.DEGREES, 0);
+                  }
+                  autonomousState = AutonomousState.MOVE_TO_LAUNCH;
+              }
+              break;
+          case MOVE_TO_LAUNCH:
+              if (!isMoving) {
+                  if (alliance == kALLIANCE_BLUE) {
+                      robot.move(0, -.5, 0);
+                  } else {
+                      robot.move(0, .5, 0);
+                  }
+                  //start moving to X/Y
+                  isMoving = true;
+              } else {
+                  currentPos = robot.DriveTrain().getPinpointPosition();
+                  double dX = Math.abs(currentPos.getX(DistanceUnit.INCH) - targetPos.getX(DistanceUnit.INCH));
+                  double dY = Math.abs(currentPos.getY(DistanceUnit.INCH) - targetPos.getY(DistanceUnit.INCH));
+
+                  if ((dY < 1)) {
+                      robot.DriveTrain().stop();
+                      autonomousState = AutonomousState.LAUNCH;
+                      isMoving = false;
+                  }
+                  //we are moving, check to see if we get to destination
+              }
+              break;
+          case LAUNCH:
+              //start the shooting process
+              robot.launcher.rapidFire = true;
+              robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_FAR + bonusVelocity, 3);
+              autonomousState = AutonomousState.WAIT_FOR_LAUNCH;
+
+              break;
+          case WAIT_FOR_LAUNCH:
+              //are we done shooting???
+              if (!robot.launcher.isShotRequested()) {
+                  autonomousState = AutonomousState.MOVE_OUT_OF_ZONE;
+                  if (alliance == kALLIANCE_BLUE) {
+                      targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
+                              currentPos.getY(DistanceUnit.INCH) - 14, AngleUnit.DEGREES, 0);
+                  } else {
+                      targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
+                              currentPos.getY(DistanceUnit.INCH) + 14, AngleUnit.DEGREES, 0);
+                  }
+
+              }
+              break;
+          case MOVE_OUT_OF_ZONE:
+              if (!isMoving) {
+                  if (alliance == kALLIANCE_BLUE) {
+                      robot.move(0, -.5, 0);
+                  } else {
+                      robot.move(0, .5, 0);
+                  }
+                  //start moving to X/Y
+                  isMoving = true;
+              } else {
+                  currentPos = robot.DriveTrain().getPinpointPosition();
+                  double dX = Math.abs(currentPos.getX(DistanceUnit.INCH) - targetPos.getX(DistanceUnit.INCH));
+                  double dY = Math.abs(currentPos.getY(DistanceUnit.INCH) - targetPos.getY(DistanceUnit.INCH));
+
+                  if ((dY < 1)) {
+                      robot.DriveTrain().stop();
+                      isMoving = false;
+
+                      if (bonusAuto) {
+                          // continue bounus auto
+                          autonomousState = AutonomousState.INTAKE_AT_SPIKE;
+                          // todo turn intake on and move forward
+                          robot.intake(1, true);
+                          if (alliance == kALLIANCE_BLUE) {
+                              targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 40,
+                                      currentPos.getY(DistanceUnit.INCH) - 0, AngleUnit.DEGREES, 0);
+                          } else {
+                              targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 40,
+                                      currentPos.getY(DistanceUnit.INCH) + 0, AngleUnit.DEGREES, 0);
+                          }
+                          FarShootingSpot = currentPos;
+                      } else {
+                          autonomousState = AutonomousState.COMPLETE;
+
+                      }
+                  }
+                  //we are moving, check to see if we get to destination
+              }
+              break;
+          case INTAKE_AT_SPIKE: {
+              if (!isMoving) {
+                  if (alliance == kALLIANCE_BLUE) {
+                      robot.move(-.5, 0, 0);
+                  } else {
+                      robot.move(-.5, 0, 0);
+                  }
+                  //start moving to X/Y
+                  isMoving = true;
+              } else {
+                  currentPos = robot.DriveTrain().getPinpointPosition();
+                  double dX = Math.abs(currentPos.getX(DistanceUnit.INCH) - targetPos.getX(DistanceUnit.INCH));
+                  double dY = Math.abs(currentPos.getY(DistanceUnit.INCH) - targetPos.getY(DistanceUnit.INCH));
+
+                  if ((dX < 5)) {
+                      robot.intake(0, true);
+                      robot.DriveTrain().stop();
+                      isMoving = false;
+
+                      autonomousState = AutonomousState.MOVE_TO_ZONE;
+                      targetPos = FarShootingSpot;
+                  }
+              }
+              break;
+          }
+          case MOVE_TO_ZONE: {
+              if (!isMoving) {
+                  robot.launcher.setFlyWheelVelocity(robot.launcher.target_velocity);
+                  if (alliance == kALLIANCE_BLUE) {
+                      robot.move(.5, +.35, 0);
+                  } else {
+                      robot.move(.5, -0.35, 0);
+                  }
+                  //start moving to X/Y
+                  isMoving = true;
+              } else {
+                  currentPos = robot.DriveTrain().getPinpointPosition();
+                  double dX = Math.abs(currentPos.getX(DistanceUnit.INCH) - targetPos.getX(DistanceUnit.INCH));
+                  double dY = Math.abs(currentPos.getY(DistanceUnit.INCH) - targetPos.getY(DistanceUnit.INCH));
+                  double distance = Math.sqrt(dX * dX + dY * dY);
+                  if ((dX < 1)) {
+                      autonomousState = AutonomousState.LAUNCH_AGAIN;
+                      robot.DriveTrain().stop();
+                      isMoving = false;
+
+                  }
+              }
+              break;
+          }
+          case LAUNCH_AGAIN: {
+              robot.launcher.rapidFire = true;
+              robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_FAR + bonusVelocity, 3);
+              autonomousState = AutonomousState.WAIT_FOR_LAUNCH_AGAIN;
+              break;
+          }
+          case WAIT_FOR_LAUNCH_AGAIN: {
+              if (!robot.launcher.isShotRequested()) {
+                  bonusAuto = false;
+                  autonomousState = AutonomousState.MOVE_OUT_OF_ZONE_AGAIN;
+                  if (alliance == kALLIANCE_BLUE) {
+                      targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
+                              currentPos.getY(DistanceUnit.INCH) - 30, AngleUnit.DEGREES, 0);
+                  } else {
+                      targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
+                              currentPos.getY(DistanceUnit.INCH) + 30, AngleUnit.DEGREES, 0);
+                  }
+
+              }
+              break;
       }
-      break;
-      case MOVE_TO_LAUNCH:
-        if (!isMoving) {
-          if ( alliance == kALLIANCE_BLUE) {
-            robot.move(0, -.5, 0);
-          }
-          else {
-            robot.move(0, .5, 0);
-          }
-          //start moving to X/Y
-          isMoving = true;
-        } else {
-          currentPos = robot.DriveTrain().getPinpointPosition();
-          double dX = Math.abs(currentPos.getX(DistanceUnit.INCH) - targetPos.getX(DistanceUnit.INCH));
-          double dY = Math.abs(currentPos.getY(DistanceUnit.INCH) - targetPos.getY(DistanceUnit.INCH));
-
-          if ((dY < 1))
+          case MOVE_OUT_OF_ZONE_AGAIN:
           {
-            robot.DriveTrain().stop();
-            autonomousState = AutonomousState.LAUNCH;
-            isMoving = false;
+              if (!isMoving) {
+                  if (alliance == kALLIANCE_BLUE) {
+                      robot.move(0, -.7, 0);
+                  } else {
+                      robot.move(0, .7, 0);
+                  }
+                  //start moving to X/Y
+                  isMoving = true;
+              } else {
+                  currentPos = robot.DriveTrain().getPinpointPosition();
+                  double dX = Math.abs(currentPos.getX(DistanceUnit.INCH) - targetPos.getX(DistanceUnit.INCH));
+                  double dY = Math.abs(currentPos.getY(DistanceUnit.INCH) - targetPos.getY(DistanceUnit.INCH));
+
+                  if ((dY < 1)) {
+                      robot.DriveTrain().stop();
+                      isMoving = false;
+                          // continue bounus auto
+                          autonomousState = AutonomousState.INTAKE_AT_MIDDLE_SPIKE;
+                          // todo turn intake on and move forward
+                          robot.intake(1, true);
+                          if (alliance == kALLIANCE_BLUE) {
+                              targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 34,
+                                      currentPos.getY(DistanceUnit.INCH) - 0, AngleUnit.DEGREES, 0);
+                          } else {
+                              targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 34,
+                                      currentPos.getY(DistanceUnit.INCH) + 0, AngleUnit.DEGREES, 0);
+                          }
+
+
+                  }
+                  //we are moving, check to see if we get to destination
+              }
+              break;
           }
-          //we are moving, check to see if we get to destination
-        }
-        break;
-    case LAUNCH:
-      //start the shooting process
-      robot.launcher.rapidFire = true;
-      robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_FAR + bonusVelocity, 3);
-      autonomousState = AutonomousState.WAIT_FOR_LAUNCH;
+          case INTAKE_AT_MIDDLE_SPIKE:
+          {
+              if (!isMoving) {
+                  if (alliance == kALLIANCE_BLUE) {
+                      robot.move(-.5, 0, 0);
+                  } else {
+                      robot.move(-.5, 0, 0);
+                  }
+                  //start moving to X/Y
+                  isMoving = true;
+              } else {
+                  currentPos = robot.DriveTrain().getPinpointPosition();
+                  double dX = Math.abs(currentPos.getX(DistanceUnit.INCH) - targetPos.getX(DistanceUnit.INCH));
+                  double dY = Math.abs(currentPos.getY(DistanceUnit.INCH) - targetPos.getY(DistanceUnit.INCH));
 
-      break;
-    case WAIT_FOR_LAUNCH:
-      //are we done shooting???
-      if (!robot.launcher.isShotRequested()) {
-        autonomousState = AutonomousState.MOVE_OUT_OF_ZONE;
-        if (alliance == kALLIANCE_BLUE) {
-          targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
-                  currentPos.getY(DistanceUnit.INCH) - 14, AngleUnit.DEGREES, 0);
-        }
-        else {
-          targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
-                  currentPos.getY(DistanceUnit.INCH) + 14, AngleUnit.DEGREES, 0);
-        }
+                  if ((dX < 1)) {
+                      robot.intake(0, true);
+                      robot.DriveTrain().stop();
+                      isMoving = false;
 
-      }
-      break;
-    case MOVE_OUT_OF_ZONE:
-      if (!isMoving) {
-        if (alliance == kALLIANCE_BLUE) {
-          robot.move(0, -.5, 0);
-        }
-        else {
-          robot.move(0, .5, 0);
-        }
-        //start moving to X/Y
-        isMoving = true;
-      } else {
-        currentPos = robot.DriveTrain().getPinpointPosition();
-          double dX = Math.abs(currentPos.getX(DistanceUnit.INCH) - targetPos.getX(DistanceUnit.INCH));
-          double dY = Math.abs(currentPos.getY(DistanceUnit.INCH) - targetPos.getY(DistanceUnit.INCH));
-
-        if ((dY < 1))
-        {
-          robot.DriveTrain().stop();
-            isMoving = false;
-
-            if (bonusAuto){
-              // continue bounus auto
-              autonomousState = AutonomousState.INTAKE_AT_SPIKE;
-              // todo turn intake on and move forward
-                robot.intake(1, true);
-                if (alliance == kALLIANCE_BLUE) {
-                    targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 36,
-                            currentPos.getY(DistanceUnit.INCH) - 0, AngleUnit.DEGREES, 0);
-                }
-                else {
-                    targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 36,
-                            currentPos.getY(DistanceUnit.INCH) + 0, AngleUnit.DEGREES, 0);
-                }
-                FarShootingSpot = currentPos;
+                      autonomousState = AutonomousState.MOVE_TO_ZONE_AGAIN_AGAIN;
+                      targetPos = FarShootingSpot;
+                  }
+              }
+              break;
           }
-          else{
-              autonomousState = AutonomousState.COMPLETE;
+          case MOVE_TO_ZONE_AGAIN_AGAIN:
+          {
+              if (!isMoving) {
+                  robot.launcher.setFlyWheelVelocity(robot.launcher.target_velocity);
+                  if (alliance == kALLIANCE_BLUE) {
+                      robot.move(0, +.4, 0);
+                  } else {
+                      robot.move(0, -.4, 0);
+                  }
+                  //start moving to X/Y
+                  isMoving = true;
+              } else {
+                  currentPos = robot.DriveTrain().getPinpointPosition();
+                  double dX = Math.abs(currentPos.getX(DistanceUnit.INCH) - targetPos.getX(DistanceUnit.INCH)+2);
+                  double dY = Math.abs(currentPos.getY(DistanceUnit.INCH) - targetPos.getY(DistanceUnit.INCH)-4);
+                  double distance = Math.sqrt(dX * dX + dY * dY);
+                  if ((dY < 1) && !move1complete) {
+                      move1complete = true;
+                      robot.DriveTrain().stop();
+                      robot.move(.5,0,0);
+                  }
+                  else
+                  {
+                      if (dX < 1)
+                      {
+                          autonomousState = AutonomousState.LAUNCH_AGAIN_AGAIN;
+                          robot.DriveTrain().stop();
+                          isMoving = false;
+                      }
+                  }
+              }
+              break;
+          }
+          case LAUNCH_AGAIN_AGAIN:
+          {
+              robot.launcher.rapidFire = true;
+              robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_FAR + bonusVelocity, 3);
+              autonomousState = AutonomousState.WAIT_FOR_LAUNCH_AGAIN;
+              break;
+          }
+          case WAIT_FOR_LAUNCH_AGAIN_AGAIN:
+          {
+              if (!robot.launcher.isShotRequested()) {
+              bonusAuto = false;
+              autonomousState = AutonomousState.MOVE_OUT_OF_ZONE;
+              if (alliance == kALLIANCE_BLUE) {
+                  targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
+                          currentPos.getY(DistanceUnit.INCH) - 38, AngleUnit.DEGREES, 0);
+              } else {
+                  targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
+                          currentPos.getY(DistanceUnit.INCH) + 38, AngleUnit.DEGREES, 0);
+              }
 
           }
-        }
-        //we are moving, check to see if we get to destination
-        }
-      break;
-        case  INTAKE_AT_SPIKE:
-        {
-            if (!isMoving) {
-                if (alliance == kALLIANCE_BLUE) {
-                    robot.move(-.5, 0, 0);
-                }
-                else {
-                    robot.move(-.5, 0, 0);
-                }
-                //start moving to X/Y
-                isMoving = true;
-            } else {
-                currentPos = robot.DriveTrain().getPinpointPosition();
-                double dX = Math.abs(currentPos.getX(DistanceUnit.INCH) - targetPos.getX(DistanceUnit.INCH));
-                double dY = Math.abs(currentPos.getY(DistanceUnit.INCH) - targetPos.getY(DistanceUnit.INCH));
+              break;
+          }
 
-                if ((dX < 5)) {
-                    robot.intake(0, true);
-                    robot.DriveTrain().stop();
-                    isMoving = false;
-
-                    autonomousState = AutonomousState.MOVE_TO_ZONE;
-                    targetPos = FarShootingSpot;
-                }
-            }
-            break;
-        }
-    case MOVE_TO_ZONE:
-    {
-        if (!isMoving) {
-            robot.launcher.setFlyWheelVelocity(robot.launcher.target_velocity);
-            if (alliance == kALLIANCE_BLUE) {
-                robot.move(.5, +.35, 0);
-            }
-            else {
-                robot.move(.5, -0.35, 0);
-            }
-            //start moving to X/Y
-            isMoving = true;
-        } else {
-            currentPos = robot.DriveTrain().getPinpointPosition();
-            double dX = Math.abs(currentPos.getX(DistanceUnit.INCH) - targetPos.getX(DistanceUnit.INCH));
-            double dY = Math.abs(currentPos.getY(DistanceUnit.INCH) - targetPos.getY(DistanceUnit.INCH));
-            double distance = Math.sqrt(dX*dX + dY*dY);
-            if ((dX < 1)) {
-                autonomousState = AutonomousState.LAUNCH_AGAIN;
-                robot.DriveTrain().stop();
-                isMoving = false;
-
-            }
-        }
-        break;
-    }
-        case LAUNCH_AGAIN:
-        {
-            robot.launcher.rapidFire = true;
-            robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_FAR + bonusVelocity, 3);
-            autonomousState = AutonomousState.WAIT_FOR_LAUNCH_AGAIN;
-            break;
-        }
-        case WAIT_FOR_LAUNCH_AGAIN:
-        {
-            if (!robot.launcher.isShotRequested()) {
-                bonusAuto = false;
-                autonomousState = AutonomousState.MOVE_OUT_OF_ZONE;
-                if (alliance == kALLIANCE_BLUE) {
-                    targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
-                            currentPos.getY(DistanceUnit.INCH) - 14, AngleUnit.DEGREES, 0);
-                }
-                else {
-                    targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
-                            currentPos.getY(DistanceUnit.INCH) + 14, AngleUnit.DEGREES, 0);
-                }
-
-            }
-            break;
-        }
     case COMPLETE:
       robot.DriveTrain().stop();
       isMoving = false;
