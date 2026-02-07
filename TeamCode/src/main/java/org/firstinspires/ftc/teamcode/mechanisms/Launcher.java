@@ -260,10 +260,7 @@ public class Launcher {
                     turret_feeder_servo.setPosition(kFEED_CLOSE_POS);
                     numShotsFufiled += 1;
                 }else{
-                    intake_motor.setPower(0.8);
-                    servo0.setPower(0.8);
-                    servo1.setPower(-0.8);
-                    servo2.setPower(-0.8);
+                    setIntakeMotor(.8, true);
                 }
                 launchState = LaunchState.LAUNCHING;
                 break;
@@ -275,11 +272,7 @@ public class Launcher {
                         //    launchState = LaunchState.SPIN_UP;
                         //}else{
                             turret_feeder_servo.setPosition(kFEED_OPEN_POS);
-                            intake_motor.setPower(0);
-                            servo0.setPower(0);
-                            servo1.setPower(0);
-                            servo2.setPower(0);
-
+                            setIntakeMotor(0, true);
                             numShotsFufiled = 0;
                             numShotsRequested = 0;
 
