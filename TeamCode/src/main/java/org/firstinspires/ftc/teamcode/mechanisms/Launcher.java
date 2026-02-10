@@ -194,13 +194,13 @@ public class Launcher {
             }
             case START_LEFT:
             {
-                setTurretPower(kAUTO_TURN_SPEED);
+                setTurretPower(-kAUTO_TURN_SPEED);
                 turningState = TurningState.READING;
                 break;
             }
             case START_RIGHT:
             {
-                setTurretPower(-kAUTO_TURN_SPEED);
+                setTurretPower(kAUTO_TURN_SPEED);
                 turningState = TurningState.READING;
                 break;
             }
@@ -233,7 +233,7 @@ public class Launcher {
                 break;
             case SPIN_UP:
                 turret_flywheel_motor.setVelocity(target_velocity);
-                /*
+/*
                 if (target_velocity == kLAUNCHER_TARGET_VELOCITY_FAR)
                 {
                     hood_servo.setPosition(kHOOD_MAX_POS);
@@ -242,10 +242,10 @@ public class Launcher {
                 {
                    hood_servo.setPosition(kHOOD_MIN_POS);
                 }
-                */
+*/
 
                 double current_velocity = getFlyWheelVelocity();
-                if (current_velocity > (target_velocity * 1.00)) {
+                if (current_velocity > (target_velocity * 1.00)) {//used to be 1.00
                     launchState = LaunchState.LAUNCH;
                 }
                 break;
