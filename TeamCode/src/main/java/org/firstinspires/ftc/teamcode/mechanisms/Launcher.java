@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -41,7 +42,7 @@ public class Launcher {
     private DcMotor turret_encoder;
     public TouchSensor turret_left_limit_sensor = null;
     public TouchSensor turret_right_limit_sensor = null;
-    private DcMotorEx turret_flywheel_motor;
+    public DcMotorEx turret_flywheel_motor;
     ElapsedTime feederTimer = new ElapsedTime();
 
     public Limelight3A vision;
@@ -50,9 +51,11 @@ public class Launcher {
     public int target_velocity;
     public int target_tag = kTAG_ANY;
     public boolean isTargetFound = false;
+    public boolean isAccurite = false;
     private boolean shotRequested = false;
     public boolean rapidFire = false;
     public Pose2D aprilTagPose =  new Pose2D(DistanceUnit.INCH, kRED_GOAL_X_OFFSET, kRED_GOAL_Y_OFFSET, AngleUnit.DEGREES, 0);
+    public double dX, dY;
     public int numShotsRequested = 0;
     public int numShotsFufiled = 0;
 
@@ -109,6 +112,9 @@ public class Launcher {
         turret_flywheel_motor = hardwareMap.get(DcMotorEx.class, "turret_flywheel_motor");
         turret_flywheel_motor.setDirection(DcMotorSimple.Direction.REVERSE);
         turret_flywheel_motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        PIDFCoefficients pidf = new PIDFCoefficients(94, 0,0, 12);
+        turret_flywheel_motor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf);
 
         turret_left_limit_sensor = hardwareMap.get(TouchSensor.class, "turret_left_limit_sensor");
         turret_right_limit_sensor = hardwareMap.get(TouchSensor.class, "turret_right_limit_sensor");
@@ -173,6 +179,7 @@ public class Launcher {
         limeLight.clearFoundAprilTag();
         limeLight.getAprilTags();
         isTargetFound = (limeLight.getTagID() == target_tag);
+        //isAccurite = false;
 
         Pose2D turretCenter = new Pose2D(DistanceUnit.INCH,
                 position.getX(DistanceUnit.INCH) - (5 * Math.cos(position.getHeading(AngleUnit.RADIANS))),
@@ -182,8 +189,8 @@ public class Launcher {
         );
 
         //always getting the distance from the robot to the april tag
-        double dX = turretCenter.getX(DistanceUnit.INCH) - aprilTagPose.getX(DistanceUnit.INCH);
-        double dY = turretCenter.getY(DistanceUnit.INCH) - aprilTagPose.getY(DistanceUnit.INCH);
+        dX = turretCenter.getX(DistanceUnit.INCH) - aprilTagPose.getX(DistanceUnit.INCH);
+        dY = turretCenter.getY(DistanceUnit.INCH) - aprilTagPose.getY(DistanceUnit.INCH);
 
         switch (turningState)
         {
@@ -206,10 +213,15 @@ public class Launcher {
             }
             case READING:
             {
-                //check to see if we can read the tag, maybe some tolerance
                 if (isTargetFound) {
-                    turningState = TurningState.STOP;
+                   // if (Math.abs(limeLight.getTagLocationX()) < 15)
+                    //{
+                        isAccurite = true;
+                        turningState = TurningState.STOP;
+                   // }
                 }
+
+                //check to see if we can read the tag, maybe some tolerance
                 break;
             }
             case STOP:
