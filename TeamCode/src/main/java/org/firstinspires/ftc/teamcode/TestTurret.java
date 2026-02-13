@@ -13,6 +13,8 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -23,7 +25,7 @@ import org.firstinspires.ftc.teamcode.mechanisms.Launcher;
 import org.firstinspires.ftc.teamcode.mechanisms.Robot;
 
 @TeleOp(name="TestTurret", group="TEST")
-@Disabled
+//@Disabled
 public class TestTurret extends OpMode {
     double position = 0;
     Launcher launcher;
@@ -33,6 +35,14 @@ public class TestTurret extends OpMode {
 
     private int alliance = kALLIANCE_RED;
 
+    public double highVelocity = 1500;
+    public double lowVelocity = 800;
+    public double currentTargetVelocity = highVelocity;
+    public double F = 12;
+    public double P = 94;
+    public double[] stepSize = {10.0, 1.0, 0.1, 0.001, 0.0001};
+    public int stepSizeIndex = 1;
+    public double tolerance = 2;
     private void initPinPoint()
     {
         pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
@@ -49,11 +59,16 @@ public class TestTurret extends OpMode {
         launcher.limeLight.setPipeline(kPIPELINE_ALLIANCE_RED);
         launcher.target_tag = kTAG_GOAL_RED;
 
+        PIDFCoefficients pidf = new PIDFCoefficients(P, 0,0, F);
+        launcher.turret_flywheel_motor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf);
+
         blinky = new Blinky();
         blinky.init(hardwareMap);
         blinky.setUnknownAlliance();
         rgb_light = hardwareMap.get(Servo.class, "rgb_light");
         rgb_light.setPosition(kBLACK);
+
+        initPinPoint();
     }
 
     @Override
@@ -100,14 +115,9 @@ public class TestTurret extends OpMode {
         else {
             blinky.setUnknownAlliance();
         }
-        if (gamepad1.left_trigger > 0)
+        if (Math.abs(gamepad1.left_stick_x) > .15)
         {
-            launcher.setTurretPower(gamepad1.left_trigger);
-            launcher.turningState = Launcher.TurningState.IDLE;
-        }
-        else if (gamepad1.right_trigger > 0)
-        {
-            launcher.setTurretPower(-gamepad1.right_trigger);
+            launcher.setTurretPower(gamepad1.left_stick_x);
             launcher.turningState = Launcher.TurningState.IDLE;
         }
         else
@@ -118,14 +128,17 @@ public class TestTurret extends OpMode {
                 launcher.setTurretPower(0);
             }
         }
-        if (gamepad1.leftBumperWasPressed())
+
+        if (gamepad1.leftTriggerWasPressed())
         {
             launcher.turningState = Launcher.TurningState.START_LEFT;
         }
-        else if (gamepad1.rightBumperWasPressed())
+        else if (gamepad1.rightTriggerWasPressed())
         {
             launcher.turningState = Launcher.TurningState.START_RIGHT;
         }
+
+
         if (gamepad1.aWasPressed())
         {
             launcher.setHoodPosition(kHOOD_MAX_POS);
@@ -149,18 +162,66 @@ public class TestTurret extends OpMode {
             position -= 0.05;
         }
 
-        if (gamepad2.rightBumperWasPressed())
+        if (gamepad1.rightBumperWasPressed())
         {
             launcher.shoot(true, kLAUNCHER_TARGET_VELOCITY_CLOSE, 1);
         }
-        if (gamepad2.leftBumperWasPressed())
+        if (gamepad1.leftBumperWasPressed())
         {
             launcher.shoot(true, kLAUNCHER_TARGET_VELOCITY_FAR, 1);
         }
 
        // launcher.turret_feeder_servo.setPosition(position);
         //telemetry.addData("kicker position", position);
+/*
+        //switch between high and low velocity
+        if (gamepad2.yWasPressed())
+        {
+            if (currentTargetVelocity == highVelocity)
+                currentTargetVelocity = lowVelocity;
+            else currentTargetVelocity = highVelocity;
+        }
 
+        //step through the step sizes
+        if (gamepad2.bWasPressed())
+        {
+            stepSizeIndex = (stepSizeIndex + 1) % stepSize.length;
+        }
+
+        if (gamepad2.dpadLeftWasPressed())
+        {
+            F -= stepSize[stepSizeIndex];
+        }
+        if (gamepad2.dpadRightWasPressed())
+        {
+            F += stepSize[stepSizeIndex];
+        }
+
+        if (gamepad2.dpadUpWasPressed())
+        {
+            P += stepSize[stepSizeIndex];
+        }
+        if (gamepad2.dpadDownWasPressed())
+        {
+            P -= stepSize[stepSizeIndex];
+        }
+
+        PIDFCoefficients pidf = new PIDFCoefficients(P, 0,0, F);
+        launcher.turret_flywheel_motor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf);
+        launcher.turret_flywheel_motor.setVelocity(currentTargetVelocity);
+
+        double currentVelocity = launcher.turret_flywheel_motor.getVelocity();
+        double error = currentTargetVelocity - currentVelocity;
+
+        telemetry.addData(" Target Velocity", currentTargetVelocity);
+        telemetry.addData("Current Velocity", currentVelocity);
+        telemetry.addData("           Error", "%.2f", error);
+        telemetry.addLine("------------------------------------");
+        telemetry.addData(" Tuning P", "%.4f (U/D)", P);
+        telemetry.addData(" Tuning F", "%.4f (L/R)", F);
+        telemetry.addData("Step Size", "%.4f (B Button)", stepSize[stepSizeIndex]);
+
+*/
         if (alliance == kALLIANCE_RED)
             telemetry.addData("Alliance", "kALLIANCE_RED");
         else if (alliance == kALLIANCE_BLUE)
@@ -180,7 +241,9 @@ public class TestTurret extends OpMode {
         if (launcher.isTargetFound) {
             telemetry.addData("ID seen", launcher.limeLight.getTagID());
             telemetry.addData("Distance", launcher.limeLight.getTagDistance());
-            telemetry.addData("Pose", launcher.limeLight.tagPose.getPosition().toUnit(DistanceUnit.INCH).toString());
+            telemetry.addData("Lime  Pose", launcher.limeLight.tagPose.getPosition().toUnit(DistanceUnit.INCH).toString());
+            telemetry.addData("dX, dY", "%.2f, %.2f", launcher.dX, launcher.dY);
+
         }
         telemetry.update();
     }
