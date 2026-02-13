@@ -26,15 +26,7 @@ public class Robot {
     private int team_alliance = kNOT_SET;
 
     ElapsedTime intakeTimer = new ElapsedTime();
-
-    public enum IntakeTime {
-        IDLE,
-        INTAKEON,
-        INTAKEOFF,
-        INTAKEONREVERSE
-    }
-    public IntakeTime intakeTime = IntakeTime.IDLE;
-
+    
     public Robot() {
 
     }
@@ -76,28 +68,6 @@ public class Robot {
         else
         {
             rgb_light.setPosition(kYELLOW);
-        }
-        switch (intakeTime)
-        {
-            case IDLE:
-            {
-                break;
-            }
-            case INTAKEON:
-                intake(1, true);
-                intakeTimer.reset();
-                break;
-            case INTAKEOFF:
-                if(intakeTimer.seconds() >= 1){
-                    intake(0, true);
-                }
-                break;
-            case INTAKEONREVERSE:
-                intake(-1, true);
-
-            default:
-                //nothing
-                break;
         }
     }
 
@@ -221,4 +191,8 @@ public class Robot {
     {
         return launcher.limeLight.getTagLocationY();
     }
+    /*public void turnTo(double TargetHeading){
+        tarHeading = TargetHeading;
+        headingState = HeadingState.PREPTOTURN;
+    }*/
 }
