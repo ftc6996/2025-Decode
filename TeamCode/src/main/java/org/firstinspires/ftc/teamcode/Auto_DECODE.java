@@ -146,7 +146,7 @@ public class Auto_DECODE extends OpMode {
             runBasicBigZoneP1();
         }
         else if (start_location == Location.BASIC_BIG_ZONE_P2) {
-            runBasicBigZone();
+            //runBasicBigZone();
         }
         else {
             TestMove();
@@ -157,8 +157,13 @@ public class Auto_DECODE extends OpMode {
         telemetry.addData("Target Vel", robot.launcher.target_velocity);
         telemetry.addData("Current Vel", robot.launcher.getFlyWheelVelocity());
         telemetry.addData("LauncherState", robot.launcher.launchState);
+        telemetry.addData("Found", robot.launcher.isTargetFound);
+        telemetry.addData("isAccurite", robot.launcher.isAccurite);
+        telemetry.addData("dx, dy", "%.2f, %.2f", robot.launcher.dX, robot.launcher.dY);
         //telemetry.addData("Fufiled shots", robot.launcher.numShotsFufiled);
         //telemetry.addData("Requested shots", robot.launcher.numShotsRequested);
+        telemetry.addData("light x:", robot.launcher.limeLight.getTagLocationX());
+
         telemetry.addData("Turret Position:", robot.launcher.getPositon());
         //outputPositions("Current", robot.DriveTrain().getAllPositions());
         //outputPositions("Target", robot.DriveTrain().getAllPositions());
@@ -192,8 +197,9 @@ public class Auto_DECODE extends OpMode {
                         targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
                                 currentPos.getY(DistanceUnit.INCH) - 12.5, AngleUnit.DEGREES, 0);
                     } else {
+                        //red side we have to move out but not as far because symetricl
                         targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 0,
-                                currentPos.getY(DistanceUnit.INCH) + 12.5, AngleUnit.DEGREES, 0);
+                                currentPos.getY(DistanceUnit.INCH) + 10.5, AngleUnit.DEGREES, 0);
                     }
                     autonomousState = AutonomousState.MOVE_TO_LAUNCH;
                 }
@@ -267,11 +273,19 @@ public class Auto_DECODE extends OpMode {
                             if (alliance == kALLIANCE_BLUE) {
                                 targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 48,
                                         currentPos.getY(DistanceUnit.INCH) - 0, AngleUnit.DEGREES, 0);
+
+                                FarShootingSpot = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 5,
+                                        currentPos.getY(DistanceUnit.INCH) - 5, AngleUnit.DEGREES, 0);
                             } else {
-                                targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 48,
+                                targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 44,
                                         currentPos.getY(DistanceUnit.INCH) + 0, AngleUnit.DEGREES, 0);
+
+                                FarShootingSpot = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 8,
+                                        currentPos.getY(DistanceUnit.INCH) + 7, AngleUnit.DEGREES, 0);
                             }
-                            FarShootingSpot = currentPos;
+                            //currentPos
+                           // FarShootingSpot = currentPos;
+
                         } else {
                             autonomousState = AutonomousState.COMPLETE;
 
@@ -301,14 +315,6 @@ public class Auto_DECODE extends OpMode {
 
                         autonomousState = AutonomousState.MOVE_TO_ZONE;
                         targetPos = FarShootingSpot;
-
-                      /*  if (alliance == kALLIANCE_BLUE) {
-                            targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 49,
-                                    currentPos.getY(DistanceUnit.INCH) - 0, AngleUnit.DEGREES, 0);
-                        } else {
-                            targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 49,
-                                    currentPos.getY(DistanceUnit.INCH) + 0, AngleUnit.DEGREES, 0);
-                        }*/
                     }
                 }
                 break;
@@ -376,6 +382,8 @@ public class Auto_DECODE extends OpMode {
                     if ((dY < 1)) {
                         robot.DriveTrain().stop();
                         isMoving = false;
+                        autonomousState = AutonomousState.COMPLETE;
+                        /*
                         // continue bounus auto
                         autonomousState = AutonomousState.INTAKE_AT_MIDDLE_SPIKE;
                         // todo turn intake on and move forward
@@ -386,10 +394,10 @@ public class Auto_DECODE extends OpMode {
                         } else {
                             targetPos = new Pose2D(DistanceUnit.INCH, currentPos.getX(DistanceUnit.INCH) + 38,
                                     currentPos.getY(DistanceUnit.INCH) + 0, AngleUnit.DEGREES, 0);
-                        }
-
+                        }*/
 
                     }
+
                     //we are moving, check to see if we get to destination
                 }
                 break;
@@ -672,9 +680,24 @@ public class Auto_DECODE extends OpMode {
                 break;
             case LAUNCH:
                 //start the shooting process
-                robot.launcher.rapidFire = true;
-                robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_CLOSE + bonusVelocity, 3);
-                autonomousState = AutonomousState.WAIT_FOR_LAUNCH;
+                if (!robot.launcher.isTargetFound)
+                {
+                    if ( alliance == kALLIANCE_BLUE) {
+                        robot.seekTagRight();
+                    }
+                    else {
+                        robot.seekTagLeft();
+                    }
+                }
+                else
+                {
+                   // if (Math.abs(robot.launcher.limeLight.tagPose.getPosition().x) <10) {
+                        robot.launcher.setTurretPower(0);
+                        robot.launcher.rapidFire = true;
+                        robot.shoot(true, kLAUNCHER_TARGET_VELOCITY_CLOSE + bonusVelocity, 3);
+                        autonomousState = AutonomousState.WAIT_FOR_LAUNCH;
+                    //}
+                }
                 break;
             case WAIT_FOR_LAUNCH:
                 //are we done shooting???
